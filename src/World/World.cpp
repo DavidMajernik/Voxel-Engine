@@ -6,6 +6,8 @@ World::World() {
 	chunkPos = glm::ivec2(0.0f, 0.0f); // Initialize chunk chunkPos to (0, 0)
 	Chunk::initializeTexture();
 	Chunk::intitializeNoiseGenerator(); // Initialize the texture and noise generator for chunks
+	Chunk::cacheUVsFromAtlas();
+
 	chunkBuildQueue = std::queue<Chunk>(); // Initialize the chunk build queue
 	processingChunks = std::unordered_set<glm::ivec2>();
 }

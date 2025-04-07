@@ -33,16 +33,17 @@ public:
 
 	static Texture* texture;
 	static FastNoiseLite noiseGenerator; // Noise generator for heightmap
+	static std::array<std::array<std::array<float, 4>, 6>, 256> cachedUVs;
 
 	static void initializeTexture();
 	static void cleanupTexture();
 	static void intitializeNoiseGenerator();
+	static void cacheUVsFromAtlas();
 
 	std::vector<std::vector<float>> genHeightMap();
 	void genBlocks(std::vector<std::vector<float>> heightMap);
 	void genFaces();
 	void integrateFace(BlockPosition blockPos, Faces face);
-	void integrateUV(BlockType type, Faces face);
 	void addIndices(int amtFaces);
 	void buildChunk();
 	void render(Shader& shader);

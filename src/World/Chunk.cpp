@@ -2,11 +2,12 @@
 
 Texture* Chunk::texture = nullptr; // Initialize the static texture pointer to nullptr
 FastNoiseLite Chunk::noiseGenerator; // Initialize the static noise generator
+std::array<std::array<std::array<float, 4>, 6>, 256> Chunk::cachedUVs;
 
 Chunk::Chunk() : chunkPos(glm::ivec3(0)), indexCount(0), chunkVAO(0), chunkVertexVBO(0), chunkUVVBO(0), chunkEBO(0) {
 	// No need to call blocks() explicitly
-}
 
+}
 Chunk::Chunk(glm::vec3 pos) : chunkPos(pos), indexCount(0), chunkVAO(0), chunkVertexVBO(0), chunkUVVBO(0), chunkEBO(0), blocks() {
 	initializeTexture(); // Initialize the texture if not already done
 	intitializeNoiseGenerator(); // Initialize the noise generator
@@ -82,7 +83,7 @@ void Chunk::genFaces() {
 							numFaces++;
 						}
 					}
-					else if (y < chunkHeight && blocks.getBlock(BlockPosition(x, y + 1, z)) == BlockType::EMPTY){
+					else if (blocks.getBlock(BlockPosition(x, y + 1, z)) == BlockType::EMPTY){
 						// If it's the farthest front, we still need to render the front 
 						integrateFace(BlockPosition(x, y, z), Faces::FRONT_F);
 						numFaces++;
@@ -95,7 +96,7 @@ void Chunk::genFaces() {
 							numFaces++;
 						}
 					}
-					else if (y < chunkHeight && blocks.getBlock(BlockPosition(x, y + 1, z)) == BlockType::EMPTY){
+					else if (blocks.getBlock(BlockPosition(x, y + 1, z)) == BlockType::EMPTY){
 						// If it's the farthest back, we still need to render the back face
 						integrateFace(BlockPosition(x, y, z), Faces::BACK_F);
 						numFaces++;
@@ -108,7 +109,7 @@ void Chunk::genFaces() {
 							numFaces++;
 						}
 					}
-					else if (y < chunkHeight && blocks.getBlock(BlockPosition(x, y + 1, z)) == BlockType::EMPTY){
+					else if (blocks.getBlock(BlockPosition(x, y + 1, z)) == BlockType::EMPTY){
 						// If it's the farthest left, we still need to render the left face
 						integrateFace(BlockPosition(x, y, z), Faces::LEFT_F);
 						numFaces++;
@@ -121,7 +122,7 @@ void Chunk::genFaces() {
 							numFaces++;
 						}
 					}
-					else if (y < chunkHeight && blocks.getBlock(BlockPosition(x, y + 1, z)) == BlockType::EMPTY){
+					else if (blocks.getBlock(BlockPosition(x, y + 1, z)) == BlockType::EMPTY){
 						// If it's the farthest right, we still need to render the right face
 						integrateFace(BlockPosition(x, y, z), Faces::RIGHT_F);
 						numFaces++;
@@ -134,7 +135,7 @@ void Chunk::genFaces() {
 							numFaces++;
 						}
 					}
-					else if (y < chunkHeight - 1 && blocks.getBlock(BlockPosition(x, y + 1, z)) == BlockType::EMPTY){
+					else {
 						// If it's the farthest top, we still need to render the top face
 						integrateFace(BlockPosition(x, y, z), Faces::TOP_F);
 						numFaces++;
@@ -147,7 +148,7 @@ void Chunk::genFaces() {
 							numFaces++;
 						}
 					}
-					else if (y < chunkHeight - 1 && blocks.getBlock(BlockPosition(x, y + 1, z)) == BlockType::EMPTY){
+					else if (blocks.getBlock(BlockPosition(x, y + 1, z)) == BlockType::EMPTY) {
 						// If it's the farthest bottom, we still need to render the bottom face
 						integrateFace(BlockPosition(x, y, z), Faces::BOTTOM_F);
 						numFaces++;
@@ -180,13 +181,12 @@ void Chunk::integrateFace(BlockPosition blockPos, Faces face) {
 
 	}
 
-	int texIndex = textureIndices.at(type)[face];
-	getUVFromAtlas(texIndex, 16, uMin, vMin, uMax, vMax);
+	const auto& uv = cachedUVs[static_cast<int>(type)][face];
 
-	chunkUVs.push_back(glm::vec2(uMin, vMin)); // Bottom Left
-	chunkUVs.push_back(glm::vec2(uMax, vMin)); // Bottom Right
-	chunkUVs.push_back(glm::vec2(uMax, vMax)); // Top Right
-	chunkUVs.push_back(glm::vec2(uMin, vMax)); // Top Left
+	chunkUVs.emplace_back(uv[0], uv[1]); // uMin, vMin
+	chunkUVs.emplace_back(uv[2], uv[1]); // uMax, vMin
+	chunkUVs.emplace_back(uv[2], uv[3]); // uMax, vMax
+	chunkUVs.emplace_back(uv[0], uv[3]); // uMin, vMax
 
 }
 
@@ -275,6 +275,29 @@ void Chunk::Delete()
 	chunkUVs.clear();
 	chunkIndices.clear();
 	indexCount = 0;
+}
+
+void Chunk::cacheUVsFromAtlas() {
+	int atlasSize = 16; // Adjust if your atlas isn't 16x16
+	float spriteSize = 1.0f / static_cast<float>(atlasSize);
+
+	for (const auto& textureIndex : textureIndices) {
+		auto BlockType = textureIndex.first;
+		auto faceIndices = textureIndex.second;
+		for (int face = 0; face < 6; ++face) {
+			int texIndex = faceIndices[face];
+
+			int col = texIndex % atlasSize;
+			int row = texIndex / atlasSize;
+
+			float uMin = col * spriteSize;
+			float vMin = row * spriteSize;
+			float uMax = uMin + spriteSize;
+			float vMax = vMin + spriteSize;
+
+			cachedUVs[static_cast<int>(BlockType)][face] = { uMin, vMin, uMax, vMax };
+		}
+	}
 }
 
 void Chunk::getUVFromAtlas(int index, int atlasSize, float& uMin, float& vMin, float& uMax, float& vMax)
