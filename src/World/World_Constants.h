@@ -3,6 +3,7 @@
 #include <unordered_map>
 #include <glm/vec3.hpp>
 #include <glm/vec2.hpp>
+#include <array>
 
 const uint8_t chunkSize = 32;
 const uint8_t chunkHeight = 32; // Maximum height of the chunk
@@ -78,11 +79,11 @@ const std::unordered_map<Faces, std::vector<glm::vec3>> rawVertexData =
     }
 };
 
-const std::unordered_map<BlockType, std::tuple<int, int, int, int, int, int>> textureIndices =
+const std::unordered_map<BlockType, std::array<int, 6>> textureIndices =
 {
-    {BlockType::GRASS, std::make_tuple(3, 3, 3, 3, 0, 2) }, // Grass Texture
-    {BlockType::DIRT,  std::make_tuple(2, 2, 2, 2, 2, 2) }, // Dirt Texture
-    {BlockType::SAND,   std::make_tuple(176, 176, 176, 176, 176, 176) }, // Sand Texture
-    {BlockType::STONE,  std::make_tuple(1, 1, 1, 1, 1, 1) },  // Stone Texture
+    {BlockType::GRASS, {3, 3, 3, 3, 0, 2} },             // Grass Texture
+    {BlockType::DIRT,  {2, 2, 2, 2, 2, 2} },             // Dirt Texture
+    {BlockType::SAND,  {176, 176, 176, 176, 176, 176} }, // Sand Texture
+    {BlockType::STONE, {1, 1, 1, 1, 1, 1} },             // Stone Texture
 
 };

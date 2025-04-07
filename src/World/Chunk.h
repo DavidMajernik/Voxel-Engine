@@ -42,7 +42,7 @@ public:
 	void genBlocks(std::vector<std::vector<float>> heightMap);
 	void genFaces();
 	void integrateFace(BlockPosition blockPos, Faces face);
-	void integrateUV(BlockType type);
+	void integrateUV(BlockType type, Faces face);
 	void addIndices(int amtFaces);
 	void buildChunk();
 	void render(Shader& shader);

@@ -45,7 +45,6 @@ std::vector<std::vector<float>> Chunk::genHeightMap()
 
 void Chunk::genBlocks(std::vector<std::vector<float>> heightMap)
 {
-    auto start = std::chrono::high_resolution_clock::now();
 
     for (int x = 0; x < chunkSize; x++) { // Loop through the x-axis of the chunk
         for (int z = 0; z < chunkSize; z++) {
@@ -62,11 +61,6 @@ void Chunk::genBlocks(std::vector<std::vector<float>> heightMap)
             }
         }
     }
-
-    auto end = std::chrono::high_resolution_clock::now();
-    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
-    std::cout << "genBlocks time: " << duration.count() << " milliseconds" << std::endl;
-
    
 }
 
@@ -79,10 +73,7 @@ void Chunk::genFaces() {
 
 				int numFaces = 0;
 				if (blocks.getBlock(BlockPosition(x, y, z)) != BlockType::EMPTY) {
-
-					//set up the UVs
-					integrateUV(static_cast<BlockType>(blocks.getBlock(BlockPosition(x, y, z))));
-
+					
 					//Front faces
 					//qualifications for front face: Block to the front is empty, is farthest front in chunk. 
 					if (z < chunkSize - 1) {
@@ -91,7 +82,7 @@ void Chunk::genFaces() {
 							numFaces++;
 						}
 					}
-					else /*if (y < chunkHeight - 1 && blocks.getBlock(BlockPosition(x, y + 1, z)) == BlockType::EMPTY)*/ {
+					else if (y < chunkHeight && blocks.getBlock(BlockPosition(x, y + 1, z)) == BlockType::EMPTY){
 						// If it's the farthest front, we still need to render the front 
 						integrateFace(BlockPosition(x, y, z), Faces::FRONT_F);
 						numFaces++;
@@ -104,7 +95,7 @@ void Chunk::genFaces() {
 							numFaces++;
 						}
 					}
-					else /*if (y < chunkHeight - 1 && blocks.getBlock(BlockPosition(x, y + 1, z)) == BlockType::EMPTY)*/ {
+					else if (y < chunkHeight && blocks.getBlock(BlockPosition(x, y + 1, z)) == BlockType::EMPTY){
 						// If it's the farthest back, we still need to render the back face
 						integrateFace(BlockPosition(x, y, z), Faces::BACK_F);
 						numFaces++;
@@ -117,7 +108,7 @@ void Chunk::genFaces() {
 							numFaces++;
 						}
 					}
-					else /*if (y < chunkHeight - 1 && blocks.getBlock(BlockPosition(x, y + 1, z)) == BlockType::EMPTY)*/ {
+					else if (y < chunkHeight && blocks.getBlock(BlockPosition(x, y + 1, z)) == BlockType::EMPTY){
 						// If it's the farthest left, we still need to render the left face
 						integrateFace(BlockPosition(x, y, z), Faces::LEFT_F);
 						numFaces++;
@@ -130,7 +121,7 @@ void Chunk::genFaces() {
 							numFaces++;
 						}
 					}
-					else /*if (y < chunkHeight - 1 && blocks.getBlock(BlockPosition(x, y + 1, z)) == BlockType::EMPTY)*/ {
+					else if (y < chunkHeight && blocks.getBlock(BlockPosition(x, y + 1, z)) == BlockType::EMPTY){
 						// If it's the farthest right, we still need to render the right face
 						integrateFace(BlockPosition(x, y, z), Faces::RIGHT_F);
 						numFaces++;
@@ -143,7 +134,7 @@ void Chunk::genFaces() {
 							numFaces++;
 						}
 					}
-					else /*if (y < chunkHeight - 1 && blocks.getBlock(BlockPosition(x, y + 1, z)) == BlockType::EMPTY)*/ {
+					else if (y < chunkHeight - 1 && blocks.getBlock(BlockPosition(x, y + 1, z)) == BlockType::EMPTY){
 						// If it's the farthest top, we still need to render the top face
 						integrateFace(BlockPosition(x, y, z), Faces::TOP_F);
 						numFaces++;
@@ -156,7 +147,7 @@ void Chunk::genFaces() {
 							numFaces++;
 						}
 					}
-					else /*if (y < chunkHeight - 1 && blocks.getBlock(BlockPosition(x, y + 1, z)) == BlockType::EMPTY)*/ {
+					else if (y < chunkHeight - 1 && blocks.getBlock(BlockPosition(x, y + 1, z)) == BlockType::EMPTY){
 						// If it's the farthest bottom, we still need to render the bottom face
 						integrateFace(BlockPosition(x, y, z), Faces::BOTTOM_F);
 						numFaces++;
@@ -178,6 +169,8 @@ void Chunk::genFaces() {
 
 void Chunk::integrateFace(BlockPosition blockPos, Faces face) {
 
+	BlockType type = static_cast<BlockType>(blocks.getBlock(blockPos)); // Get the block type at the given position
+
 	// Apply chunk position offset to vertices
 	for (auto& vertex : rawVertexData.at(face)) {
 		
@@ -187,46 +180,8 @@ void Chunk::integrateFace(BlockPosition blockPos, Faces face) {
 
 	}
 
-}
-
-void Chunk::integrateUV(BlockType type) {
-
-	getUVFromAtlas(std::get<0>(textureIndices.at(type)), 16, uMin, vMin, uMax, vMax);
-
-	chunkUVs.push_back(glm::vec2(uMin, vMin)); // Bottom Left
-	chunkUVs.push_back(glm::vec2(uMax, vMin)); // Bottom Right
-	chunkUVs.push_back(glm::vec2(uMax, vMax)); // Top Right
-	chunkUVs.push_back(glm::vec2(uMin, vMax)); // Top Left
-
-	getUVFromAtlas(std::get<1>(textureIndices.at(type)), 16, uMin, vMin, uMax, vMax);
-
-	chunkUVs.push_back(glm::vec2(uMin, vMin)); // Bottom Left
-	chunkUVs.push_back(glm::vec2(uMax, vMin)); // Bottom Right
-	chunkUVs.push_back(glm::vec2(uMax, vMax)); // Top Right
-	chunkUVs.push_back(glm::vec2(uMin, vMax)); // Top Left
-
-	getUVFromAtlas(std::get<2>(textureIndices.at(type)), 16, uMin, vMin, uMax, vMax);
-
-	chunkUVs.push_back(glm::vec2(uMin, vMin)); // Bottom Left
-	chunkUVs.push_back(glm::vec2(uMax, vMin)); // Bottom Right
-	chunkUVs.push_back(glm::vec2(uMax, vMax)); // Top Right
-	chunkUVs.push_back(glm::vec2(uMin, vMax)); // Top Left
-
-	getUVFromAtlas(std::get<3>(textureIndices.at(type)), 16, uMin, vMin, uMax, vMax);
-
-	chunkUVs.push_back(glm::vec2(uMin, vMin)); // Bottom Left
-	chunkUVs.push_back(glm::vec2(uMax, vMin)); // Bottom Right
-	chunkUVs.push_back(glm::vec2(uMax, vMax)); // Top Right
-	chunkUVs.push_back(glm::vec2(uMin, vMax)); // Top Left
-	
-	getUVFromAtlas(std::get<4>(textureIndices.at(type)), 16, uMin, vMin, uMax, vMax);
-
-	chunkUVs.push_back(glm::vec2(uMin, vMin)); // Bottom Left
-	chunkUVs.push_back(glm::vec2(uMax, vMin)); // Bottom Right
-	chunkUVs.push_back(glm::vec2(uMax, vMax)); // Top Right
-	chunkUVs.push_back(glm::vec2(uMin, vMax)); // Top Left
-
-	getUVFromAtlas(std::get<5>(textureIndices.at(type)), 16, uMin, vMin, uMax, vMax);
+	int texIndex = textureIndices.at(type)[face];
+	getUVFromAtlas(texIndex, 16, uMin, vMin, uMax, vMax);
 
 	chunkUVs.push_back(glm::vec2(uMin, vMin)); // Bottom Left
 	chunkUVs.push_back(glm::vec2(uMax, vMin)); // Bottom Right
