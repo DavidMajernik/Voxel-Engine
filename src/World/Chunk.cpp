@@ -271,9 +271,10 @@ void Chunk::Delete()
 	glDeleteBuffers(1, &chunkUVVBO);
 	glDeleteBuffers(1, &chunkEBO);
 
-	if (texture != nullptr) {
-		texture = nullptr;
-	}
+	chunkVerts.clear();
+	chunkUVs.clear();
+	chunkIndices.clear();
+	indexCount = 0;
 }
 
 void Chunk::getUVFromAtlas(int index, int atlasSize, float& uMin, float& vMin, float& uMax, float& vMax)

@@ -19,12 +19,11 @@ void World::updateChunks(glm::vec3 camPos)
 	);
 	//std::cout << "Camera chunk chunkPos: " << chunkPos.x << ", " << chunkPos.y << std::endl;
 
-	// Iterate over the render distance in both x and z directions
+	// Iterate over the render distance and load chunks
 	for (int x = -renderDistance; x <= renderDistance; x++)
 	{
 		for (int z = -renderDistance; z <= renderDistance; z++)
-		{
-
+		{	
 			glm::ivec2 chunkKey = glm::ivec2(chunkPos.x + x, chunkPos.y + z);
 			// Check if the chunk already exists in the map
 			if (loadedChunkMap.find(chunkKey) == loadedChunkMap.end() &&
@@ -34,7 +33,7 @@ void World::updateChunks(glm::vec3 camPos)
 				// If it doesn't exist, create a new chunk at the calculated chunkPos
 				futureChunkMap[chunkKey] = std::async(std::launch::async, [chunkKey]() {
 					// Create a new chunk and build it
-					std::cout << "Loading chunk at: " << chunkKey.x << ", " << chunkKey.y << std::endl;
+					//std::cout << "Loading chunk at: " << chunkKey.x << ", " << chunkKey.y << std::endl;
 					Chunk temp(glm::vec3(chunkKey.x * chunkSize, 0.0f, chunkKey.y * chunkSize));
 					return temp;
 					});
@@ -75,6 +74,30 @@ void World::updateChunks(glm::vec3 camPos)
 		chunkBuildQueue.pop(); // Remove it from the queue
 		processingChunks.erase(key); // Remove from processingChunks set
 		chunksBuilt++;
+	}
+
+	// Iterate over the buffer distance and add to buffered set
+	std::unordered_set<glm::ivec2> bufferedChunkSet;
+
+	for (int x = -unloadDistance; x <= unloadDistance; x++)
+	{
+		for (int z = -unloadDistance; z <= unloadDistance; z++)
+		{
+			glm::ivec2 chunkKey = glm::ivec2(chunkPos.x + x, chunkPos.y + z);
+			bufferedChunkSet.insert(chunkKey);
+		}
+	}
+
+	// Unload chunks that are outside the render distance
+	for (auto it = loadedChunkMap.begin(); it != loadedChunkMap.end(); ) {
+		if (bufferedChunkSet.find(it->first) == bufferedChunkSet.end()) {
+			// Outside of active range -> unload it
+			it->second.Delete();  // Make sure this cleans up OpenGL buffers
+			it = loadedChunkMap.erase(it);
+		}
+		else {
+			++it;
+		}
 	}
 
 }
