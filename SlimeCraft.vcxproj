@@ -25,8 +25,6 @@
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\Shader.cpp" />
     <ClCompile Include="src\Texture.cpp" />
-    <ClCompile Include="src\World\Block.cpp" />
-    <ClCompile Include="src\World\BlockData.cpp" />
     <ClCompile Include="src\World\Chunk.cpp" />
     <ClCompile Include="src\World\World.cpp" />
   </ItemGroup>
@@ -36,10 +34,9 @@
     <ClInclude Include="src\Camera.h" />
     <ClInclude Include="src\Shader.h" />
     <ClInclude Include="src\Texture.h" />
-    <ClInclude Include="src\World\Block.h" />
-    <ClInclude Include="src\World\BlockData.h" />
     <ClInclude Include="src\World\Chunk.h" />
     <ClInclude Include="src\World\World.h" />
+    <ClInclude Include="src\World\World_Constants.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="shaders\6.3.coordinate_systems.fs" />

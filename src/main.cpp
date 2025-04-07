@@ -74,8 +74,8 @@ int main()
     // -----------------------------
     glEnable(GL_DEPTH_TEST);
 	glad_glFrontFace(GL_CW); // Set the front face to clockwise
-	glEnable(GL_CULL_FACE); // Enable face culling
-	glCullFace(GL_BACK); // Cull back faces (the default is GL_BACK, but it's good to be explicit)
+	//glEnable(GL_CULL_FACE); // Enable face culling
+	//glCullFace(GL_BACK); // Cull back faces (the default is GL_BACK, but it's good to be explicit)
    
 
     // build and compile our shader zprogram
@@ -85,6 +85,7 @@ int main()
 
     //make chunk
     //Chunk chunk = Chunk(glm::vec3(0.0f, 0.0f, 0.0f)); // Create a chunk at the origin
+    //chunk.buildChunk();
     World world = World();
 
     // render loop
@@ -120,8 +121,6 @@ int main()
 
         glm::mat4 model = glm::mat4(1.0f); // make sure to initialize matrix to identity matrix first
         ourShader.setMat4("model", model);
-
-       
 
         //chunk.render(ourShader); // Render the chunk using the shader
         world.updateChunks(camera.Position);

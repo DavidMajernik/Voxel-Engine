@@ -29,6 +29,4 @@ public:
 
 private:
 
-	static const int renderDistance = 1; // The distance in chunks to render around the player
-
 };

@@ -1,61 +1,67 @@
 #pragma once
-#include "Block.h"
-#include "../Shader.h"
+
+#include "World_Constants.h"
+#include <unordered_map>
+#include <glm/gtx/hash.hpp>
+#include <array>
+#include <glm/vec3.hpp>
+#include <glm/ext/vector_float2.hpp>
+#include "../../LinkerStuff/dependencies/FastNoiseLite.h"
 #include "../Texture.h"
-#include "../dependencies/FastNoiseLite.h"
+#include "../Shader.h"
+#include <iostream>'
 #include <chrono>
 
-class Chunk
-{
+using BlockPosition = glm::vec3; // Using glm's ivec3 for block positions
+
+class Chunk {
+
+	struct ChunkData {
+		std::array<uint8_t, chunkVolume> blocks; // Stores block data for the chunk
+
+		uint8_t getBlock(const BlockPosition& blockPos) const;
+		void setBlock(const BlockPosition& blockPos, uint8_t blockType);
+
+	};
+	
 public:
-	static const int SIZE = 32; 
-	static const int HEIGHT = 32;
-	glm::vec3 position;
+
+	Chunk();
+	Chunk(glm::vec3 pos);
+
+	glm::vec3 chunkPos;
+
+	static Texture* texture;
+	static FastNoiseLite noiseGenerator; // Noise generator for heightmap
+
+	static void initializeTexture();
+	static void cleanupTexture();
+	static void intitializeNoiseGenerator();
+
+	std::vector<std::vector<float>> genHeightMap();
+	void genBlocks(std::vector<std::vector<float>> heightMap);
+	void genFaces();
+	void integrateFace(BlockPosition blockPos, Faces face);
+	void integrateUV(BlockType type);
+	void addIndices(int amtFaces);
+	void buildChunk();
+	void render(Shader& shader);
+	void Delete();
+
+private:
+	float uMin, vMin, uMax, vMax;
+	ChunkData blocks; // The chunk's block data
+	static int getBlockIndex(const BlockPosition& blockPos);
+	void getUVFromAtlas(int index, int atlasSize, float& uMin, float& vMin, float& uMax, float& vMax);
 
 	unsigned int chunkVAO; // Vertex Array Object for the chunk
 	unsigned int chunkVertexVBO;
 	unsigned int chunkUVVBO;
 	unsigned int chunkEBO;
-	static Texture* texture;
-	static FastNoiseLite noiseGenerator; // Noise generator for heightmap
 
-	Chunk();
-	Chunk(glm::vec3 position);
-
-	std::vector<std::vector<float>> genChunk(); // generate the data
-
-	void genBlocks(std::vector<std::vector<float>> heightMap); // generate the appropriate block faces given the data
-
-	void genFaces();
-
-	void buildChunk(); // take data and process it for rendering
-
-	void render(Shader& shader); // Drawing the chunk
-
-	void addIndices(int amtFaces); // Add the amount of indices between a range
-
-	void integrateFace(Block block, BlockData::Faces face); // Integrate a face into the chunk data
-
-	void Delete();
-
-	inline Block& getChunkBlocks(int x, int y, int z) {
-		return chunkBlocks[x + SIZE * (y + HEIGHT * z)];
-	}
-
-	static void initializeTexture();
-	static void cleanupTexture();
-
-	static void intitializeNoiseGenerator();
-
-	
-
-private:
 	std::vector<glm::vec3> chunkVerts;
 	std::vector<glm::vec2> chunkUVs;
 	std::vector<unsigned int> chunkIndices;
-
-	unsigned int indexCount;
-	std::vector<Block> chunkBlocks;
-
+	int indexCount;
 
 };
