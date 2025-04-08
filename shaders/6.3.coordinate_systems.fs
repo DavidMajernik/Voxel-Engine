@@ -2,6 +2,7 @@
 out vec4 FragColor;
 
 in vec2 TexCoord;
+in float vAO;
 
 uniform sampler2D texture1;
 //uniform sampler2D texture2;
@@ -9,5 +10,6 @@ uniform sampler2D texture1;
 void main()
 {
     FragColor = texture(texture1, TexCoord);
-    //FragColor = mix(texture(texture1, TexCoord), texture(texture2, TexCoord), 0.2);
+    //FragColor *= vAO;
+   FragColor *= mix(0.7, 1.0, vAO); // Simulate AO darkening
 }

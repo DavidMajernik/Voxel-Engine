@@ -4,16 +4,19 @@ Texture* Chunk::texture = nullptr; // Initialize the static texture pointer to n
 FastNoiseLite Chunk::noiseGenerator; // Initialize the static noise generator
 std::array<std::array<std::array<float, 4>, 6>, 256> Chunk::cachedUVs;
 
-Chunk::Chunk() : chunkPos(glm::ivec3(0)), indexCount(0), chunkVAO(0), chunkVertexVBO(0), chunkUVVBO(0), chunkEBO(0) {
+Chunk::Chunk() : chunkPos(glm::ivec3(0)), indexCount(0), chunkVAO(0), chunkVertexVBO(0), chunkUVVBO(0), chunkEBO(0), chunkAOBO(0) {
 	// No need to call blocks() explicitly
+	AOVals = std::make_unique<std::vector<uint8_t>>();
 
 }
-Chunk::Chunk(glm::vec3 pos) : chunkPos(pos), indexCount(0), chunkVAO(0), chunkVertexVBO(0), chunkUVVBO(0), chunkEBO(0), blocks() {
-	initializeTexture(); // Initialize the texture if not already done
-	intitializeNoiseGenerator(); // Initialize the noise generator
-
+Chunk::Chunk(glm::vec3 pos) : chunkPos(pos), indexCount(0), chunkVAO(0), chunkVertexVBO(0), chunkUVVBO(0), chunkEBO(0), blocks(), chunkAOBO(0) {
+	chunkVerts = std::make_unique<std::vector<glm::vec3>>();
+	chunkUVs = std::make_unique<std::vector<glm::vec2>>();
+	chunkIndices = std::make_unique<std::vector<unsigned int>>();
+	AOVals = std::make_unique<std::vector<uint8_t>>();
 	genBlocks(genHeightMap()); // Generate blocks for the chunk
 	genFaces(); // Generate the faces for the chunk based on the blocks
+
 }
 
 int Chunk::getBlockIndex(const BlockPosition& blockPos) {
@@ -73,85 +76,98 @@ void Chunk::genFaces() {
 			for (int y = 0; y < chunkHeight; y++) {
 
 				int numFaces = 0;
-				if (blocks.getBlock(BlockPosition(x, y, z)) != BlockType::EMPTY) {
+				BlockPosition current = BlockPosition(x, y, z);
+				if (blocks.getBlock(current) != BlockType::EMPTY) {
 					
 					//Front faces
 					//qualifications for front face: Block to the front is empty, is farthest front in chunk. 
 					if (z < chunkSize - 1) {
 						if (blocks.getBlock(BlockPosition(x, y, z + 1)) == BlockType::EMPTY) {
-							integrateFace(BlockPosition(x, y, z), Faces::FRONT_F);
-							numFaces++;
+							integrateFace(current, Faces::FRONT_F);
+							numFaces++;				
 						}
+						
 					}
 					else if (blocks.getBlock(BlockPosition(x, y + 1, z)) == BlockType::EMPTY){
 						// If it's the farthest front, we still need to render the front 
-						integrateFace(BlockPosition(x, y, z), Faces::FRONT_F);
-						numFaces++;
+						integrateFace(current, Faces::FRONT_F);
+						numFaces++;		
+						
 					}
 					//Back faces
 					//qualifications for back face: Block to the back is empty, is farthest back in chunk. 
 					if (z > 0) {
 						if (blocks.getBlock(BlockPosition(x, y, z-1)) == BlockType::EMPTY) {
-							integrateFace(BlockPosition(x, y, z), Faces::BACK_F);
-							numFaces++;
+							integrateFace(current, Faces::BACK_F);
+							numFaces++;		
+							
 						}
 					}
 					else if (blocks.getBlock(BlockPosition(x, y + 1, z)) == BlockType::EMPTY){
 						// If it's the farthest back, we still need to render the back face
-						integrateFace(BlockPosition(x, y, z), Faces::BACK_F);
-						numFaces++;
+						integrateFace(current, Faces::BACK_F);
+						numFaces++;		
+						
 					}
 					//Left faces
 					//qualifications for left face: Block to the left is empty, is farthest left in chunk. 
 					if (x > 0) {
 						if (blocks.getBlock(BlockPosition(x-1, y, z)) == BlockType::EMPTY) {
-							integrateFace(BlockPosition(x, y, z), Faces::LEFT_F);
-							numFaces++;
+							integrateFace(current, Faces::LEFT_F);
+							numFaces++;	
+							
 						}
 					}
 					else if (blocks.getBlock(BlockPosition(x, y + 1, z)) == BlockType::EMPTY){
 						// If it's the farthest left, we still need to render the left face
-						integrateFace(BlockPosition(x, y, z), Faces::LEFT_F);
-						numFaces++;
+						integrateFace(current, Faces::LEFT_F);
+						numFaces++;		
+						
 					}
 					//Right faces
 					//qualifications for right face: Block to the right is empty, is farthest right in chunk. 
 					if (x < chunkSize - 1) {
 						if (blocks.getBlock(BlockPosition(x + 1, y, z)) == BlockType::EMPTY) {
-							integrateFace(BlockPosition(x, y, z), Faces::RIGHT_F);
-							numFaces++;
+							integrateFace(current, Faces::RIGHT_F);
+							numFaces++;	
+							
 						}
 					}
 					else if (blocks.getBlock(BlockPosition(x, y + 1, z)) == BlockType::EMPTY){
 						// If it's the farthest right, we still need to render the right face
-						integrateFace(BlockPosition(x, y, z), Faces::RIGHT_F);
-						numFaces++;
+						integrateFace(current, Faces::RIGHT_F);
+						numFaces++;		
+						
 					}
 					//Top faces
 					//qualifications for top face: Block to the top is empty, is farthest top in chunk. 
 					if (y < chunkHeight - 1) {
 						if (blocks.getBlock(BlockPosition(x, y + 1, z)) == BlockType::EMPTY) {
-							integrateFace(BlockPosition(x, y, z), Faces::TOP_F);
-							numFaces++;
+							integrateFace(current, Faces::TOP_F);
+							numFaces++;		
+							
 						}
 					}
 					else {
 						// If it's the farthest top, we still need to render the top face
-						integrateFace(BlockPosition(x, y, z), Faces::TOP_F);
+						integrateFace(current, Faces::TOP_F);
 						numFaces++;
+						
 					}
 					//Bottom faces
 					//qualifications for bottom face: Block to the bottom is empty, is farthest bottom in chunk. 
 					if (y > 0) {
 						if (blocks.getBlock(BlockPosition(x, y - 1, z)) == BlockType::EMPTY) {
-							integrateFace(BlockPosition(x, y, z), Faces::BOTTOM_F);
-							numFaces++;
+							integrateFace(current, Faces::BOTTOM_F);
+							numFaces++;		
+							
 						}
 					}
 					else if (blocks.getBlock(BlockPosition(x, y + 1, z)) == BlockType::EMPTY) {
 						// If it's the farthest bottom, we still need to render the bottom face
-						integrateFace(BlockPosition(x, y, z), Faces::BOTTOM_F);
+						integrateFace(current, Faces::BOTTOM_F);
 						numFaces++;
+						
 					}
 
 				}
@@ -175,7 +191,7 @@ void Chunk::integrateFace(BlockPosition blockPos, Faces face) {
 	// Apply chunk position offset to vertices
 	for (auto& vertex : rawVertexData.at(face)) {
 		
-        chunkVerts.push_back(glm::vec3(static_cast<float>(vertex.x + blockPos.x + chunkPos.x),
+        chunkVerts->push_back(glm::vec3(static_cast<float>(vertex.x + blockPos.x + chunkPos.x),
 			static_cast<float>(vertex.y + blockPos.y + chunkPos.y),
 			static_cast<float>(vertex.z + blockPos.z + chunkPos.z))); // Add the vertex to the chunkVerts vector
 
@@ -183,10 +199,13 @@ void Chunk::integrateFace(BlockPosition blockPos, Faces face) {
 
 	const auto& uv = cachedUVs[static_cast<int>(type)][face];
 
-	chunkUVs.emplace_back(uv[0], uv[1]); // uMin, vMin
-	chunkUVs.emplace_back(uv[2], uv[1]); // uMax, vMin
-	chunkUVs.emplace_back(uv[2], uv[3]); // uMax, vMax
-	chunkUVs.emplace_back(uv[0], uv[3]); // uMin, vMax
+	chunkUVs->emplace_back(uv[0], uv[1]); // uMin, vMin
+	chunkUVs->emplace_back(uv[2], uv[1]); // uMax, vMin
+	chunkUVs->emplace_back(uv[2], uv[3]); // uMax, vMax
+	chunkUVs->emplace_back(uv[0], uv[3]); // uMin, vMax
+
+	//add ao vals
+	generateAOVals(blockPos, face);
 
 }
 
@@ -194,12 +213,12 @@ void Chunk::integrateFace(BlockPosition blockPos, Faces face) {
 void Chunk::addIndices(int amtFaces)
 {
 	for (int i = 0; i < amtFaces; i++) {
-		chunkIndices.push_back(0 + indexCount);
-		chunkIndices.push_back(1 + indexCount);
-		chunkIndices.push_back(2 + indexCount);
-		chunkIndices.push_back(2 + indexCount);
-		chunkIndices.push_back(3 + indexCount);
-		chunkIndices.push_back(0 + indexCount);
+		chunkIndices->push_back(0 + indexCount);
+		chunkIndices->push_back(1 + indexCount);
+		chunkIndices->push_back(2 + indexCount);
+		chunkIndices->push_back(2 + indexCount);
+		chunkIndices->push_back(3 + indexCount);
+		chunkIndices->push_back(0 + indexCount);
 
 		indexCount += 4; // Each face has 4 vertices, so we increment by 4
 	}
@@ -207,29 +226,37 @@ void Chunk::addIndices(int amtFaces)
 
 void Chunk::buildChunk()
 {
-	GLenum error;
+	//std::cout << "Verts: " << chunkVerts->size() << " | AO: " << AOVals->size() << std::endl;
+
 	glGenVertexArrays(1, &chunkVAO); // Generate a Vertex Array Object for the chunk
 	glBindVertexArray(chunkVAO); // Bind the VAO
 	
 
 	glGenBuffers(1, &chunkVertexVBO);
 	glBindBuffer(GL_ARRAY_BUFFER, chunkVertexVBO); // Bind the vertex buffer
-	glBufferData(GL_ARRAY_BUFFER, chunkVerts.size() * sizeof(glm::vec3), &chunkVerts[0], GL_STATIC_DRAW); // Load the vertex data into the buffer
+	glBufferData(GL_ARRAY_BUFFER, chunkVerts->size() * sizeof(glm::vec3), chunkVerts->data(), GL_STATIC_DRAW); // Load the vertex data into the buffer
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0); // Set the vertex attribute pointer
 	glEnableVertexAttribArray(0); // Enable the vertex attribute array
 
 	glGenBuffers(1, &chunkUVVBO);
 	glBindBuffer(GL_ARRAY_BUFFER, chunkUVVBO); // Bind the vertex buffer
-	glBufferData(GL_ARRAY_BUFFER, chunkUVs.size() * sizeof(glm::vec2), &chunkUVs[0], GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, chunkUVs->size() * sizeof(glm::vec2), chunkUVs->data(), GL_STATIC_DRAW);
 	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void*)0);
 	glEnableVertexAttribArray(1);
 
 	glGenBuffers(1, &chunkEBO);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, chunkEBO); // Bind the index buffer
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, chunkIndices.size() * sizeof(unsigned int), &chunkIndices[0], GL_STATIC_DRAW);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, chunkIndices->size() * sizeof(unsigned int), chunkIndices->data(), GL_STATIC_DRAW);
+
+	glGenBuffers(1, &chunkAOBO);
+	glBindBuffer(GL_ARRAY_BUFFER, chunkAOBO);
+	glBufferData(GL_ARRAY_BUFFER, AOVals->size() * sizeof(uint8_t), AOVals->data(), GL_STATIC_DRAW);
+	glVertexAttribIPointer(2, 1, GL_UNSIGNED_BYTE, sizeof(uint8_t), (void*)0); // Correctly interpret as integer
+	glEnableVertexAttribArray(2);
 
 	glBindVertexArray(0);
 }
+
 
 void Chunk::render(Shader& shader)
 {
@@ -237,7 +264,7 @@ void Chunk::render(Shader& shader)
 	glBindVertexArray(chunkVAO);
 	texture->Bind(GL_TEXTURE0); // Bind the texture for the chunk
 
-	glDrawElements(GL_TRIANGLES, chunkIndices.size(), GL_UNSIGNED_INT, 0); // Draw the chunk using the indices
+	glDrawElements(GL_TRIANGLES, chunkIndices->size(), GL_UNSIGNED_INT, 0); // Draw the chunk using the indices
 	glBindVertexArray(0); // Unbind the VAO to avoid accidental modification
 	GLenum error;
 	if ((error = glGetError()) != GL_NO_ERROR) {
@@ -270,10 +297,8 @@ void Chunk::Delete()
 	glDeleteBuffers(1, &chunkVertexVBO);
 	glDeleteBuffers(1, &chunkUVVBO);
 	glDeleteBuffers(1, &chunkEBO);
+	glDeleteBuffers(1, &chunkAOBO);
 
-	chunkVerts.clear();
-	chunkUVs.clear();
-	chunkIndices.clear();
 	indexCount = 0;
 }
 
@@ -311,4 +336,92 @@ void Chunk::getUVFromAtlas(int index, int atlasSize, float& uMin, float& vMin, f
 	vMin = row * spriteSize;
 	uMax = uMin + spriteSize;
 	vMax = vMin + spriteSize;
+}
+
+void Chunk::generateAOVals(BlockPosition blockPos, Faces face) {
+
+	// Corner offsets
+	glm::vec3 corners[6][4] = {
+		// FRONT_F
+		{{1, 1, 1}, {-1, 1, 1}, {-1, -1, 1}, {1, -1, 1}},
+		// BACK_F
+		{{-1, 1, -1}, {1, 1, -1}, {1, -1, -1}, {-1, -1, -1}},
+		// LEFT_F
+		{{-1, 1, -1}, {-1, 1, 1}, {-1, -1, 1}, {-1, -1, -1}},
+		// RIGHT_F
+		{{1, 1, 1}, {1, 1, -1}, {1, -1, -1}, {1, -1, 1}},
+		// TOP_F
+		{{-1, 1, -1}, {1, 1, -1}, {1, 1, 1}, {-1, 1, 1}},
+		// BOTTOM_F
+		{{1, -1, -1}, {-1, -1, -1}, {-1, -1, 1}, {1, -1, 1}}
+	};
+
+	for (int i = 0; i < 4; ++i) {
+		BlockPosition cornerOffset = corners[static_cast<int>(face)][i];
+		BlockPosition side1Pos, side2Pos, cornerPos;
+		bool hasSide1, hasSide2, hasCorner;
+
+		switch (face) {
+		case FRONT_F:
+			side1Pos = BlockPosition(blockPos.x + cornerOffset.x, blockPos.y + cornerOffset.y, blockPos.z);
+			side2Pos = BlockPosition(blockPos.x, blockPos.y + cornerOffset.y, blockPos.z + cornerOffset.z);
+			cornerPos = BlockPosition(blockPos.x + cornerOffset.x, blockPos.y + cornerOffset.y, blockPos.z + cornerOffset.z);
+			break;
+		case BACK_F:
+			side1Pos = BlockPosition(blockPos.x + cornerOffset.x, blockPos.y + cornerOffset.y, blockPos.z);
+			side2Pos = BlockPosition(blockPos.x, blockPos.y + cornerOffset.y, blockPos.z + cornerOffset.z);
+			cornerPos = BlockPosition(blockPos.x + cornerOffset.x, blockPos.y + cornerOffset.y, blockPos.z + cornerOffset.z);
+			break;
+		case LEFT_F:
+			side1Pos = BlockPosition(blockPos.x + cornerOffset.x, blockPos.y + cornerOffset.y, blockPos.z);
+			side2Pos = BlockPosition(blockPos.x, blockPos.y + cornerOffset.y, blockPos.z + cornerOffset.z);
+			cornerPos = BlockPosition(blockPos.x + cornerOffset.x, blockPos.y + cornerOffset.y, blockPos.z + cornerOffset.z);
+			break;
+		case RIGHT_F:
+			side1Pos = BlockPosition(blockPos.x + cornerOffset.x, blockPos.y + cornerOffset.y, blockPos.z);
+			side2Pos = BlockPosition(blockPos.x, blockPos.y + cornerOffset.y, blockPos.z + cornerOffset.z);
+			cornerPos = BlockPosition(blockPos.x + cornerOffset.x, blockPos.y + cornerOffset.y, blockPos.z + cornerOffset.z);
+			break;
+		case TOP_F:
+			side1Pos = BlockPosition(blockPos.x + cornerOffset.x, blockPos.y + cornerOffset.y, blockPos.z);
+			side2Pos = BlockPosition(blockPos.x, blockPos.y + cornerOffset.y, blockPos.z + cornerOffset.z);
+			cornerPos = BlockPosition(blockPos.x + cornerOffset.x, blockPos.y + cornerOffset.y, blockPos.z + cornerOffset.z);
+			/*side1Pos = blockPos + cornerOffset;
+			side2Pos = blockPos + cornerOffset;
+			cornerPos = blockPos + cornerOffset;*/
+			break;
+		case BOTTOM_F:
+			side1Pos = BlockPosition(blockPos.x + cornerOffset.x, blockPos.y + cornerOffset.y, blockPos.z);
+			side2Pos = BlockPosition(blockPos.x, blockPos.y + cornerOffset.y, blockPos.z + cornerOffset.z);
+			cornerPos = BlockPosition(blockPos.x + cornerOffset.x, blockPos.y + cornerOffset.y, blockPos.z + cornerOffset.z);
+			break;
+		}
+
+		if (side1Pos.x >= 0 && side1Pos.x < chunkSize &&
+			side1Pos.y >= 0 && side1Pos.y < chunkHeight &&
+			side1Pos.z >= 0 && side1Pos.z < chunkSize &&
+			side2Pos.x >= 0 && side2Pos.x < chunkSize &&
+			side2Pos.y >= 0 && side2Pos.y < chunkHeight &&
+			side2Pos.z >= 0 && side2Pos.z < chunkSize &&
+			cornerPos.x >= 0 && cornerPos.x < chunkSize &&
+			cornerPos.y >= 0 && cornerPos.y < chunkHeight &&
+			cornerPos.z >= 0 && cornerPos.z < chunkSize) {
+
+			hasSide1 = blocks.getBlock(side1Pos) != BlockType::EMPTY; //isBlockSolid(side1Pos);
+			hasSide2 = blocks.getBlock(side2Pos) != BlockType::EMPTY; //isBlockSolid(side2Pos);
+			hasCorner = blocks.getBlock(cornerPos) != BlockType::EMPTY; //isBlockSolid(cornerPos);
+
+		}
+		else {
+			hasSide1 = hasSide2 = hasCorner = true;
+		}
+		
+
+		AOVals->push_back(vertexAO(hasSide1, hasSide2, hasCorner));
+	}
+}
+
+uint8_t Chunk::vertexAO(bool s1, bool s2, bool corner) {
+	if (s1 && s2) return 0;
+	return 3 - (s1 + s2 + corner);
 }

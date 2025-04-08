@@ -70,7 +70,6 @@ void World::updateChunks(glm::vec3 camPos)
 	{
 		Chunk chunk = std::move(chunkBuildQueue.front()); // Get the chunk from the queue
 		chunk.buildChunk(); // Build the chunk
-		std::cout << "Building chunk at: " << chunk.chunkPos.x << ", " << chunk.chunkPos.z << std::endl;
 		glm::ivec2 key = glm::ivec2(chunk.chunkPos.x / chunkSize, chunk.chunkPos.z / chunkSize);
 		loadedChunkMap[key] = std::move(chunk); // Store it in the loadedChunkMap
 		chunkBuildQueue.pop(); // Remove it from the queue

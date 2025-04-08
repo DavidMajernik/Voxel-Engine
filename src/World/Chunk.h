@@ -49,6 +49,9 @@ public:
 	void render(Shader& shader);
 	void Delete();
 
+	void generateAOVals(BlockPosition blockPos, Faces face);
+	uint8_t vertexAO(bool s1, bool s2, bool corner);
+
 private:
 	float uMin, vMin, uMax, vMax;
 	ChunkData blocks; // The chunk's block data
@@ -59,10 +62,12 @@ private:
 	unsigned int chunkVertexVBO;
 	unsigned int chunkUVVBO;
 	unsigned int chunkEBO;
+	unsigned int chunkAOBO;
 
-	std::vector<glm::vec3> chunkVerts;
-	std::vector<glm::vec2> chunkUVs;
-	std::vector<unsigned int> chunkIndices;
+	std::unique_ptr < std::vector<glm::vec3>> chunkVerts;
+	std::unique_ptr < std::vector<glm::vec2>> chunkUVs;
+	std::unique_ptr < std::vector<unsigned int>> chunkIndices;
+	std::unique_ptr<std::vector<uint8_t>> AOVals;
+
 	int indexCount;
-
 };
