@@ -15,7 +15,7 @@ Chunk::Chunk(glm::vec3 pos, std::unordered_map<glm::ivec2, Chunk>* loadedChunkMa
 	chunkIndices = std::make_unique<std::vector<unsigned int>>();
 	AOVals = std::make_unique<std::vector<uint8_t>>();
 	genBlocks(genHeightMap()); // Generate blocks for the chunk
-	genFaces(); // Generate the faces for the chunk based on the blocks
+	//genFaces(); // Generate the faces for the chunk based on the blocks
 
 }
 
@@ -50,22 +50,23 @@ std::vector<std::vector<float>> Chunk::genHeightMap()
 void Chunk::genBlocks(std::vector<std::vector<float>> heightMap)
 {
 
-    for (int x = 0; x < chunkSize; x++) { // Loop through the x-axis of the chunk
-        for (int z = 0; z < chunkSize; z++) {
+	for (int x = 0; x < chunkSize; x++) { // Loop through the x-axis of the chunk
+		for (int z = 0; z < chunkSize; z++) {
 
-            int columnHeight = static_cast<int>(heightMap[x][z]); // Get the height for the current column from the heightmap
+			int columnHeight = static_cast<int>(heightMap[x][z]); // Get the height for the current column from the heightmap
 
-            for (int y = 0; y < chunkHeight; y++) {
+			for (int y = 0; y < chunkHeight; y++) {
 
-                if (y < columnHeight) {
+				if (y < columnHeight) {
 					blocks.setBlock(BlockPosition(x, y, z), (y == columnHeight - 1) ? BlockType::GRASS : BlockType::DIRT);
-                } else {
+				}
+				else {
 					blocks.setBlock(BlockPosition(x, y, z), BlockType::EMPTY);
-                }
-            }
-        }
-    }
-   
+				}
+			}
+		}
+	}
+
 }
 
 void Chunk::genFaces() {
@@ -78,96 +79,65 @@ void Chunk::genFaces() {
 				int numFaces = 0;
 				BlockPosition current = BlockPosition(x, y, z);
 				if (blocks.getBlock(current) != BlockType::EMPTY) {
-					
+
 					//Front faces
 					//qualifications for front face: Block to the front is empty, is farthest front in chunk. 
-					if (z < chunkSize - 1) {
-						if (blocks.getBlock(BlockPosition(x, y, z + 1)) == BlockType::EMPTY) {
-							integrateFace(current, Faces::FRONT_F);
-							numFaces++;				
-						}
-						
-					}
-					else if (blocks.getBlock(BlockPosition(x, y + 1, z)) == BlockType::EMPTY){
-						// If it's the farthest front, we still need to render the front 
+					if (getBlockGlobal(BlockPosition(x, y, z + 1)) == BlockType::EMPTY) {
 						integrateFace(current, Faces::FRONT_F);
-						numFaces++;		
-						
+						numFaces++;
 					}
+
 					//Back faces
-					//qualifications for back face: Block to the back is empty, is farthest back in chunk. 
-					if (z > 0) {
-						if (blocks.getBlock(BlockPosition(x, y, z-1)) == BlockType::EMPTY) {
-							integrateFace(current, Faces::BACK_F);
-							numFaces++;		
-							
-						}
-					}
-					else if (blocks.getBlock(BlockPosition(x, y + 1, z)) == BlockType::EMPTY){
-						// If it's the farthest back, we still need to render the back face
+					//qualifications for back face: Block to the back is empty, is farthest back in chunk
+					if (getBlockGlobal(BlockPosition(x, y, z - 1)) == BlockType::EMPTY) {
 						integrateFace(current, Faces::BACK_F);
-						numFaces++;		
-						
+						numFaces++;
+
 					}
+					
 					//Left faces
 					//qualifications for left face: Block to the left is empty, is farthest left in chunk. 
-					if (x > 0) {
-						if (blocks.getBlock(BlockPosition(x-1, y, z)) == BlockType::EMPTY) {
-							integrateFace(current, Faces::LEFT_F);
-							numFaces++;	
-							
-						}
-					}
-					else if (blocks.getBlock(BlockPosition(x, y + 1, z)) == BlockType::EMPTY){
-						// If it's the farthest left, we still need to render the left face
+					if (getBlockGlobal(BlockPosition(x - 1, y, z)) == BlockType::EMPTY) {
 						integrateFace(current, Faces::LEFT_F);
-						numFaces++;		
-						
+						numFaces++;
+
 					}
 					//Right faces
-					//qualifications for right face: Block to the right is empty, is farthest right in chunk. 
-					if (x < chunkSize - 1) {
-						if (blocks.getBlock(BlockPosition(x + 1, y, z)) == BlockType::EMPTY) {
-							integrateFace(current, Faces::RIGHT_F);
-							numFaces++;	
-							
-						}
-					}
-					else if (blocks.getBlock(BlockPosition(x, y + 1, z)) == BlockType::EMPTY){
-						// If it's the farthest right, we still need to render the right face
+					//qualifications for right face: Block to the right is empty, is farthest right in chunk
+					if (getBlockGlobal(BlockPosition(x + 1, y, z)) == BlockType::EMPTY) {
 						integrateFace(current, Faces::RIGHT_F);
-						numFaces++;		
-						
+						numFaces++;
+
 					}
 					//Top faces
 					//qualifications for top face: Block to the top is empty, is farthest top in chunk. 
 					if (y < chunkHeight - 1) {
 						if (blocks.getBlock(BlockPosition(x, y + 1, z)) == BlockType::EMPTY) {
 							integrateFace(current, Faces::TOP_F);
-							numFaces++;		
-							
+							numFaces++;
+
 						}
 					}
 					else {
 						// If it's the farthest top, we still need to render the top face
 						integrateFace(current, Faces::TOP_F);
 						numFaces++;
-						
+
 					}
 					//Bottom faces
 					//qualifications for bottom face: Block to the bottom is empty, is farthest bottom in chunk. 
 					if (y > 0) {
 						if (blocks.getBlock(BlockPosition(x, y - 1, z)) == BlockType::EMPTY) {
 							integrateFace(current, Faces::BOTTOM_F);
-							numFaces++;		
-							
+							numFaces++;
+
 						}
 					}
 					else if (blocks.getBlock(BlockPosition(x, y + 1, z)) == BlockType::EMPTY) {
 						// If it's the farthest bottom, we still need to render the bottom face
 						integrateFace(current, Faces::BOTTOM_F);
 						numFaces++;
-						
+
 					}
 
 				}
@@ -190,8 +160,8 @@ void Chunk::integrateFace(BlockPosition blockPos, Faces face) {
 
 	// Apply chunk position offset to vertices
 	for (auto& vertex : rawVertexData.at(face)) {
-		
-        chunkVerts->push_back(glm::vec3(static_cast<float>(vertex.x + blockPos.x + chunkPos.x),
+
+		chunkVerts->push_back(glm::vec3(static_cast<float>(vertex.x + blockPos.x + chunkPos.x),
 			static_cast<float>(vertex.y + blockPos.y + chunkPos.y),
 			static_cast<float>(vertex.z + blockPos.z + chunkPos.z))); // Add the vertex to the chunkVerts vector
 
@@ -230,7 +200,7 @@ void Chunk::buildChunk()
 
 	glGenVertexArrays(1, &chunkVAO); // Generate a Vertex Array Object for the chunk
 	glBindVertexArray(chunkVAO); // Bind the VAO
-	
+
 
 	glGenBuffers(1, &chunkVertexVBO);
 	glBindBuffer(GL_ARRAY_BUFFER, chunkVertexVBO); // Bind the vertex buffer
@@ -401,7 +371,7 @@ void Chunk::generateAOVals(BlockPosition blockPos, Faces face) {
 		hasSide1 = getBlockGlobal(side1Pos) != BlockType::EMPTY; //isBlockSolid(side1Pos);
 		hasSide2 = getBlockGlobal(side2Pos) != BlockType::EMPTY; //isBlockSolid(side2Pos);
 		hasCorner = getBlockGlobal(cornerPos) != BlockType::EMPTY; //isBlockSolid(cornerPos);
-		
+
 
 		AOVals->push_back(vertexAO(hasSide1, hasSide2, hasCorner));
 	}
@@ -438,6 +408,7 @@ uint8_t Chunk::getBlockGlobal(const BlockPosition& pos) const {
 
 	// Bounds check for Y (vertical)
 	if (localPos.y < 0 || localPos.y >= chunkHeight) return BlockType::EMPTY;
+
 
 	// Look up neighboring chunk
 	if (loadedChunks && loadedChunks->count(neighborChunkXZ)) {

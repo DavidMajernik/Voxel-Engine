@@ -19,7 +19,7 @@ public:
 	std::unordered_map<glm::ivec2, Chunk> loadedChunkMap;
 	std::unordered_set<glm::ivec2> processingChunks;
 	glm::ivec2 chunkPos;
-	std::queue<Chunk> chunkBuildQueue;
+
 
 
 	World();

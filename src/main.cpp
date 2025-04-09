@@ -152,7 +152,7 @@ void processInput(GLFWwindow* window)
     int speed = 2;
 
 	if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
-		speed += 2; // Double the speed if left shift is pressed
+		speed *= 4; // Double the speed if left shift is pressed
 
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
         camera.ProcessKeyboard(FORWARD, deltaTime * speed);

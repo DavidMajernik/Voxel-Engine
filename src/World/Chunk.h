@@ -23,13 +23,14 @@ class Chunk {
 		void setBlock(const BlockPosition& blockPos, uint8_t blockType);
 
 	};
-	
+
 public:
 
 	Chunk();
 	Chunk(glm::vec3 pos, std::unordered_map<glm::ivec2, Chunk>* loadedChunkMap);
 
 	glm::vec3 chunkPos;
+	bool isGenerated = false;
 
 	static Texture* texture;
 	static FastNoiseLite noiseGenerator; // Noise generator for heightmap

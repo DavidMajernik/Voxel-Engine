@@ -4,12 +4,10 @@
 World::World() {
 	// Constructor can be empty or initialize any necessary variables if needed
 	chunkPos = glm::ivec2(0.0f, 0.0f); // Initialize chunk chunkPos to (0, 0)
+	processingChunks = std::unordered_set<glm::ivec2>();
 	Chunk::initializeTexture();
 	Chunk::intitializeNoiseGenerator(); // Initialize the texture and noise generator for chunks
 	Chunk::cacheUVsFromAtlas();
-
-	chunkBuildQueue = std::queue<Chunk>(); // Initialize the chunk build queue
-	processingChunks = std::unordered_set<glm::ivec2>();
 }
 
 void World::updateChunks(glm::vec3 camPos)
@@ -19,13 +17,12 @@ void World::updateChunks(glm::vec3 camPos)
 		static_cast<int>(camPos.x / chunkSize),
 		static_cast<int>(camPos.z / chunkSize)
 	);
-	//std::cout << "Camera chunk chunkPos: " << chunkPos.x << ", " << chunkPos.y << std::endl;
 
 	// Iterate over the render distance and load chunks
 	for (int x = -renderDistance; x <= renderDistance; x++)
 	{
 		for (int z = -renderDistance; z <= renderDistance; z++)
-		{	
+		{
 			glm::ivec2 chunkKey = glm::ivec2(chunkPos.x + x, chunkPos.y + z);
 			// Check if the chunk already exists in the map
 			if (loadedChunkMap.find(chunkKey) == loadedChunkMap.end() &&
@@ -33,9 +30,9 @@ void World::updateChunks(glm::vec3 camPos)
 				processingChunks.find(chunkKey) == processingChunks.end())
 			{
 				// If it doesn't exist, create a new chunk at the calculated chunkPos
+				processingChunks.insert(chunkKey);
 				futureChunkMap[chunkKey] = std::async(std::launch::async, [this, chunkKey]() {
 					// Create a new chunk and build it
-					//std::cout << "Loading chunk at: " << chunkKey.x << ", " << chunkKey.y << std::endl;
 					Chunk temp(glm::vec3(chunkKey.x * chunkSize, 0.0f, chunkKey.y * chunkSize), &loadedChunkMap);
 					return temp;
 					});
@@ -44,37 +41,31 @@ void World::updateChunks(glm::vec3 camPos)
 		}
 	}
 
-
 	for (auto it = futureChunkMap.begin(); it != futureChunkMap.end(); )
 	{
-		if (it->second.wait_for(std::chrono::seconds(0)) == std::future_status::ready) // Check if the future is ready
-		{
-			if (it->second.valid()) {
-				processingChunks.insert(it->first);
-				Chunk chunk = it->second.get(); // Store the result in a temporary variable
-				//chunk.buildChunk();
-				chunkBuildQueue.push(std::move(chunk)); // defer building // Use the temporary variable
-				it = futureChunkMap.erase(it); // Remove from futureChunkMap
-			}
-		}
-		else
-		{
-			++it; // Move to the next element
+		it->second.wait();
+		if (it->second.valid()) {
+
+			Chunk chunk = it->second.get(); // Store the result in a temporary variable
+			
+			loadedChunkMap[it->first] = std::move(chunk); // Move the chunk into the loadedChunkMap
+			processingChunks.erase(it->first); // Remove from processing set
+			it = futureChunkMap.erase(it);
 		}
 	}
 
-	// Build chunks from the queue
-	int chunksBuilt = 0;
-	int maxChunksPerFrame = 1;
-	while (!chunkBuildQueue.empty() && chunksBuilt < maxChunksPerFrame)
-	{
-		Chunk chunk = std::move(chunkBuildQueue.front()); // Get the chunk from the queue
-		chunk.buildChunk(); // Build the chunk
-		glm::ivec2 key = glm::ivec2(chunk.chunkPos.x / chunkSize, chunk.chunkPos.z / chunkSize);
-		loadedChunkMap[key] = std::move(chunk); // Store it in the loadedChunkMap
-		chunkBuildQueue.pop(); // Remove it from the queue
-		processingChunks.erase(key); // Remove from processingChunks set
-		chunksBuilt++;
+	for (auto it = loadedChunkMap.begin(); it != loadedChunkMap.end(); ) {
+
+		Chunk& chunkRef = it->second;
+		glm::ivec2 chunkCoord(chunkRef.chunkPos.x / chunkSize, chunkRef.chunkPos.z / chunkSize);
+
+		if (!chunkRef.isGenerated) {
+			chunkRef.genFaces();
+			chunkRef.buildChunk();
+			chunkRef.isGenerated = true;
+		}
+		it++;
+		
 	}
 
 	// Iterate over the buffer distance and add to buffered set
@@ -100,6 +91,7 @@ void World::updateChunks(glm::vec3 camPos)
 			++it;
 		}
 	}
+
 
 }
 
