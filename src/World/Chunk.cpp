@@ -9,7 +9,7 @@ Chunk::Chunk() : chunkPos(glm::ivec3(0)), indexCount(0), chunkVAO(0), chunkVerte
 	AOVals = std::make_unique<std::vector<uint8_t>>();
 
 }
-Chunk::Chunk(glm::vec3 pos) : chunkPos(pos), indexCount(0), chunkVAO(0), chunkVertexVBO(0), chunkUVVBO(0), chunkEBO(0), blocks(), chunkAOBO(0) {
+Chunk::Chunk(glm::vec3 pos, std::unordered_map<glm::ivec2, Chunk>* loadedChunkMap) : chunkPos(pos), indexCount(0), chunkVAO(0), chunkVertexVBO(0), chunkUVVBO(0), chunkEBO(0), blocks(), chunkAOBO(0), loadedChunks(loadedChunkMap) {
 	chunkVerts = std::make_unique<std::vector<glm::vec3>>();
 	chunkUVs = std::make_unique<std::vector<glm::vec2>>();
 	chunkIndices = std::make_unique<std::vector<unsigned int>>();
@@ -397,24 +397,10 @@ void Chunk::generateAOVals(BlockPosition blockPos, Faces face) {
 			break;
 		}
 
-		if (side1Pos.x >= 0 && side1Pos.x < chunkSize &&
-			side1Pos.y >= 0 && side1Pos.y < chunkHeight &&
-			side1Pos.z >= 0 && side1Pos.z < chunkSize &&
-			side2Pos.x >= 0 && side2Pos.x < chunkSize &&
-			side2Pos.y >= 0 && side2Pos.y < chunkHeight &&
-			side2Pos.z >= 0 && side2Pos.z < chunkSize &&
-			cornerPos.x >= 0 && cornerPos.x < chunkSize &&
-			cornerPos.y >= 0 && cornerPos.y < chunkHeight &&
-			cornerPos.z >= 0 && cornerPos.z < chunkSize) {
 
-			hasSide1 = blocks.getBlock(side1Pos) != BlockType::EMPTY; //isBlockSolid(side1Pos);
-			hasSide2 = blocks.getBlock(side2Pos) != BlockType::EMPTY; //isBlockSolid(side2Pos);
-			hasCorner = blocks.getBlock(cornerPos) != BlockType::EMPTY; //isBlockSolid(cornerPos);
-
-		}
-		else {
-			hasSide1 = hasSide2 = hasCorner = true;
-		}
+		hasSide1 = getBlockGlobal(side1Pos) != BlockType::EMPTY; //isBlockSolid(side1Pos);
+		hasSide2 = getBlockGlobal(side2Pos) != BlockType::EMPTY; //isBlockSolid(side2Pos);
+		hasCorner = getBlockGlobal(cornerPos) != BlockType::EMPTY; //isBlockSolid(cornerPos);
 		
 
 		AOVals->push_back(vertexAO(hasSide1, hasSide2, hasCorner));
@@ -424,4 +410,40 @@ void Chunk::generateAOVals(BlockPosition blockPos, Faces face) {
 uint8_t Chunk::vertexAO(bool s1, bool s2, bool corner) {
 	if (s1 && s2) return 0;
 	return 3 - (s1 + s2 + corner);
+}
+
+uint8_t Chunk::getBlockGlobal(const BlockPosition& pos) const {
+	// If the position is inside this chunk, return it directly
+	if (pos.x >= 0 && pos.x < chunkSize &&
+		pos.y >= 0 && pos.y < chunkHeight &&
+		pos.z >= 0 && pos.z < chunkSize) {
+		return blocks.getBlock(pos);
+	}
+
+	// Calculate world-space block position
+	glm::ivec3 worldPos = chunkPos + glm::vec3(pos.x, pos.y, pos.z);
+
+	// Determine which chunk this position belongs to
+	glm::ivec2 neighborChunkXZ(
+		std::floor(worldPos.x / static_cast<float>(chunkSize)),
+		std::floor(worldPos.z / static_cast<float>(chunkSize))
+	);
+
+	// Calculate local block position within the neighboring chunk
+	BlockPosition localPos(
+		(worldPos.x % chunkSize + chunkSize) % chunkSize,
+		worldPos.y,
+		(worldPos.z % chunkSize + chunkSize) % chunkSize
+	);
+
+	// Bounds check for Y (vertical)
+	if (localPos.y < 0 || localPos.y >= chunkHeight) return BlockType::EMPTY;
+
+	// Look up neighboring chunk
+	if (loadedChunks && loadedChunks->count(neighborChunkXZ)) {
+		const Chunk& neighbor = loadedChunks->at(neighborChunkXZ);
+		return neighbor.blocks.getBlock(localPos);
+	}
+
+	return BlockType::EMPTY; // Default if chunk isn't loaded
 }

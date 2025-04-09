@@ -9,7 +9,7 @@
 #include "../../LinkerStuff/dependencies/FastNoiseLite.h"
 #include "../Texture.h"
 #include "../Shader.h"
-#include <iostream>'
+#include <iostream>
 #include <chrono>
 
 using BlockPosition = glm::vec3; // Using glm's ivec3 for block positions
@@ -27,7 +27,7 @@ class Chunk {
 public:
 
 	Chunk();
-	Chunk(glm::vec3 pos);
+	Chunk(glm::vec3 pos, std::unordered_map<glm::ivec2, Chunk>* loadedChunkMap);
 
 	glm::vec3 chunkPos;
 
@@ -51,6 +51,7 @@ public:
 
 	void generateAOVals(BlockPosition blockPos, Faces face);
 	uint8_t vertexAO(bool s1, bool s2, bool corner);
+	uint8_t getBlockGlobal(const BlockPosition& pos) const;
 
 private:
 	float uMin, vMin, uMax, vMax;
@@ -68,6 +69,7 @@ private:
 	std::unique_ptr < std::vector<glm::vec2>> chunkUVs;
 	std::unique_ptr < std::vector<unsigned int>> chunkIndices;
 	std::unique_ptr<std::vector<uint8_t>> AOVals;
+	std::unordered_map<glm::ivec2, Chunk>* loadedChunks = nullptr;
 
 	int indexCount;
 };

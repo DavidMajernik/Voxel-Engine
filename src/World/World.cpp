@@ -33,10 +33,10 @@ void World::updateChunks(glm::vec3 camPos)
 				processingChunks.find(chunkKey) == processingChunks.end())
 			{
 				// If it doesn't exist, create a new chunk at the calculated chunkPos
-				futureChunkMap[chunkKey] = std::async(std::launch::async, [chunkKey]() {
+				futureChunkMap[chunkKey] = std::async(std::launch::async, [this, chunkKey]() {
 					// Create a new chunk and build it
 					//std::cout << "Loading chunk at: " << chunkKey.x << ", " << chunkKey.y << std::endl;
-					Chunk temp(glm::vec3(chunkKey.x * chunkSize, 0.0f, chunkKey.y * chunkSize));
+					Chunk temp(glm::vec3(chunkKey.x * chunkSize, 0.0f, chunkKey.y * chunkSize), &loadedChunkMap);
 					return temp;
 					});
 
