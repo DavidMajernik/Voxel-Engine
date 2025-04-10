@@ -88,3 +88,7 @@ const std::unordered_map<BlockType, std::array<int, 6>> textureIndices =
     {BlockType::STONE, {1, 1, 1, 1, 1, 1} },             // Stone Texture
 
 };
+
+const std::vector<glm::vec2> neighborOffsets = {
+    {1, 0}, {-1, 0}, {0, 1}, {0, -1}
+};

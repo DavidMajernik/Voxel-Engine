@@ -20,8 +20,6 @@ public:
 	std::unordered_set<glm::ivec2> processingChunks;
 	glm::ivec2 chunkPos;
 
-
-
 	World();
 	void updateChunks(glm::vec3 camPos);
 	void renderChunks(Shader& shader);

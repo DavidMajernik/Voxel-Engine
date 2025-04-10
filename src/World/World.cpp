@@ -46,9 +46,18 @@ void World::updateChunks(glm::vec3 camPos)
 		it->second.wait();
 		if (it->second.valid()) {
 
+			for (const auto& offset : neighborOffsets) {
+				glm::vec2 neighborKey = glm::vec2(it->first.x + offset.x, it->first.y + offset.y);
+				auto neighborIt = loadedChunkMap.find(neighborKey);
+				if (neighborIt != loadedChunkMap.end()) {
+
+					neighborIt->second.isGenerated = false; // Force rebuild neighbors of a newly loaded 
+				}
+			}
+
 			Chunk chunk = it->second.get(); // Store the result in a temporary variable
-			
 			loadedChunkMap[it->first] = std::move(chunk); // Move the chunk into the loadedChunkMap
+
 			processingChunks.erase(it->first); // Remove from processing set
 			it = futureChunkMap.erase(it);
 		}
@@ -60,6 +69,8 @@ void World::updateChunks(glm::vec3 camPos)
 		glm::ivec2 chunkCoord(chunkRef.chunkPos.x / chunkSize, chunkRef.chunkPos.z / chunkSize);
 
 		if (!chunkRef.isGenerated) {
+
+			chunkRef.Delete();
 			chunkRef.genFaces();
 			chunkRef.buildChunk();
 			chunkRef.isGenerated = true;

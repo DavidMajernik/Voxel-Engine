@@ -81,30 +81,30 @@ void Chunk::genFaces() {
 				if (blocks.getBlock(current) != BlockType::EMPTY) {
 
 					//Front faces
-					//qualifications for front face: Block to the front is empty, is farthest front in chunk. 
-					if (getBlockGlobal(BlockPosition(x, y, z + 1)) == BlockType::EMPTY) {
+					//qualifications for front face: Block to the front is empty
+					if (getBlockGlobal(BlockPosition(x, y, z + 1)) == BlockType::EMPTY && getBlockGlobal(BlockPosition(x, y+1, z)) == BlockType::EMPTY) {
 						integrateFace(current, Faces::FRONT_F);
 						numFaces++;
 					}
 
 					//Back faces
-					//qualifications for back face: Block to the back is empty, is farthest back in chunk
-					if (getBlockGlobal(BlockPosition(x, y, z - 1)) == BlockType::EMPTY) {
+					//qualifications for back face: Block to the back is empty
+					if (getBlockGlobal(BlockPosition(x, y, z - 1)) == BlockType::EMPTY && getBlockGlobal(BlockPosition(x, y + 1, z)) == BlockType::EMPTY) {
 						integrateFace(current, Faces::BACK_F);
 						numFaces++;
 
 					}
 					
 					//Left faces
-					//qualifications for left face: Block to the left is empty, is farthest left in chunk. 
-					if (getBlockGlobal(BlockPosition(x - 1, y, z)) == BlockType::EMPTY) {
+					//qualifications for left face: Block to the left is empty
+					if (getBlockGlobal(BlockPosition(x - 1, y, z)) == BlockType::EMPTY && getBlockGlobal(BlockPosition(x, y + 1, z)) == BlockType::EMPTY) {
 						integrateFace(current, Faces::LEFT_F);
 						numFaces++;
 
 					}
 					//Right faces
-					//qualifications for right face: Block to the right is empty, is farthest right in chunk
-					if (getBlockGlobal(BlockPosition(x + 1, y, z)) == BlockType::EMPTY) {
+					//qualifications for right face: Block to the right is empty
+					if (getBlockGlobal(BlockPosition(x + 1, y, z)) == BlockType::EMPTY && getBlockGlobal(BlockPosition(x, y + 1, z)) == BlockType::EMPTY) {
 						integrateFace(current, Faces::RIGHT_F);
 						numFaces++;
 
@@ -125,7 +125,7 @@ void Chunk::genFaces() {
 
 					}
 					//Bottom faces
-					//qualifications for bottom face: Block to the bottom is empty, is farthest bottom in chunk. 
+					//qualifications for bottom face: Block to the bottom is empty
 					if (y > 0) {
 						if (blocks.getBlock(BlockPosition(x, y - 1, z)) == BlockType::EMPTY) {
 							integrateFace(current, Faces::BOTTOM_F);
@@ -270,6 +270,10 @@ void Chunk::Delete()
 	glDeleteBuffers(1, &chunkAOBO);
 
 	indexCount = 0;
+	chunkVerts->clear();
+	chunkUVs->clear();
+	chunkIndices->clear();
+	AOVals->clear();
 }
 
 void Chunk::cacheUVsFromAtlas() {
