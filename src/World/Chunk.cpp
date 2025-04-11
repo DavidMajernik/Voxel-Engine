@@ -1,7 +1,7 @@
 #include "Chunk.h"
 
 Texture* Chunk::texture = nullptr; // Initialize the static texture pointer to nullptr
-FastNoiseLite Chunk::noiseGenerator; // Initialize the static noise generator
+
 std::array<std::array<std::array<float, 4>, 6>, 256> Chunk::cachedUVs;
 
 Chunk::Chunk() : chunkPos(glm::ivec3(0)), indexCount(0), chunkVAO(0), chunkVertexVBO(0), chunkUVVBO(0), chunkEBO(0), chunkAOBO(0) {
@@ -16,6 +16,7 @@ Chunk::Chunk(glm::vec3 pos, std::unordered_map<glm::ivec2, Chunk>* loadedChunkMa
 	AOVals = std::make_unique<std::vector<uint8_t>>();
 	genBlocks(genHeightMap()); // Generate blocks for the chunk
 	//genFaces(); // Generate the faces for the chunk based on the blocks
+
 
 }
 
@@ -39,8 +40,8 @@ std::vector<std::vector<float>> Chunk::genHeightMap()
 	// Simple heightmap generation (for example, using Perlin noise or any other algorithm)
 	for (int x = 0; x < chunkSize; x++) {
 		for (int z = 0; z < chunkSize; z++) {
-			float noiseValue = noiseGenerator.GetNoise(static_cast<float>(x + chunkPos.x), static_cast<float>(z + chunkPos.z));
-			heightMap[x][z] = static_cast<int>((noiseValue + 1.0f) * 0.5f * chunkHeight);
+			float noiseValue = Terrain::getNoiseAt((x + chunkPos.x), (z + chunkPos.z));
+			heightMap[x][z] = noiseValue;
 		}
 	}
 	return heightMap;
@@ -70,87 +71,83 @@ void Chunk::genBlocks(std::vector<std::vector<float>> heightMap)
 }
 
 void Chunk::genFaces() {
-	auto start = std::chrono::high_resolution_clock::now();
+	//auto start = std::chrono::high_resolution_clock::now();
 	for (int x = 0; x < chunkSize; x++) {
 		for (int z = 0; z < chunkSize; z++) {
 
 			for (int y = 0; y < chunkHeight; y++) {
 
-				int numFaces = 0;
+				
 				BlockPosition current = BlockPosition(x, y, z);
-				if (blocks.getBlock(current) != BlockType::EMPTY) {
 
-					//Front faces
-					//qualifications for front face: Block to the front is empty
-					if (getBlockGlobal(BlockPosition(x, y, z + 1)) == BlockType::EMPTY && getBlockGlobal(BlockPosition(x, y+1, z)) == BlockType::EMPTY) {
-						integrateFace(current, Faces::FRONT_F);
-						numFaces++;
-					}
+				if (blocks.getBlock(current) == BlockType::EMPTY) continue;
 
-					//Back faces
-					//qualifications for back face: Block to the back is empty
-					if (getBlockGlobal(BlockPosition(x, y, z - 1)) == BlockType::EMPTY && getBlockGlobal(BlockPosition(x, y + 1, z)) == BlockType::EMPTY) {
-						integrateFace(current, Faces::BACK_F);
-						numFaces++;
+				int numFaces = 0;
+				uint8_t above = getBlockGlobal(BlockPosition(x, y + 1, z));
 
-					}
+				//Front faces
+				//qualifications for front face: Block to the front is empty
+				if (getBlockGlobal(BlockPosition(x, y, z + 1)) == BlockType::EMPTY) {
+					integrateFace(current, Faces::FRONT_F);
+					numFaces++;
+				}
+
+				//Back faces
+				//qualifications for back face: Block to the back is empty
+				if (getBlockGlobal(BlockPosition(x, y, z - 1)) == BlockType::EMPTY) {
+					integrateFace(current, Faces::BACK_F);
+					numFaces++;
+
+				}
 					
-					//Left faces
-					//qualifications for left face: Block to the left is empty
-					if (getBlockGlobal(BlockPosition(x - 1, y, z)) == BlockType::EMPTY && getBlockGlobal(BlockPosition(x, y + 1, z)) == BlockType::EMPTY) {
-						integrateFace(current, Faces::LEFT_F);
-						numFaces++;
+				//Left faces
+				//qualifications for left face: Block to the left is empty
+				if (getBlockGlobal(BlockPosition(x - 1, y, z)) == BlockType::EMPTY) {
+					integrateFace(current, Faces::LEFT_F);
+					numFaces++;
 
-					}
-					//Right faces
-					//qualifications for right face: Block to the right is empty
-					if (getBlockGlobal(BlockPosition(x + 1, y, z)) == BlockType::EMPTY && getBlockGlobal(BlockPosition(x, y + 1, z)) == BlockType::EMPTY) {
-						integrateFace(current, Faces::RIGHT_F);
-						numFaces++;
+				}
+				//Right faces
+				//qualifications for right face: Block to the right is empty
+				if (getBlockGlobal(BlockPosition(x + 1, y, z)) == BlockType::EMPTY) {
+					integrateFace(current, Faces::RIGHT_F);
+					numFaces++;
 
-					}
-					//Top faces
-					//qualifications for top face: Block to the top is empty, is farthest top in chunk. 
-					if (y < chunkHeight - 1) {
-						if (blocks.getBlock(BlockPosition(x, y + 1, z)) == BlockType::EMPTY) {
-							integrateFace(current, Faces::TOP_F);
-							numFaces++;
-
-						}
-					}
-					else {
-						// If it's the farthest top, we still need to render the top face
+				}
+				//Top faces
+				//qualifications for top face: Block to the top is empty, is farthest top in chunk. 
+				if (y < chunkHeight - 1) {
+					if (blocks.getBlock(BlockPosition(x, y + 1, z)) == BlockType::EMPTY) {
 						integrateFace(current, Faces::TOP_F);
 						numFaces++;
 
 					}
-					//Bottom faces
-					//qualifications for bottom face: Block to the bottom is empty
-					if (y > 0) {
-						if (blocks.getBlock(BlockPosition(x, y - 1, z)) == BlockType::EMPTY) {
-							integrateFace(current, Faces::BOTTOM_F);
-							numFaces++;
+				}
+				else {
+					// If it's the farthest top, we still need to render the top face
+					integrateFace(current, Faces::TOP_F);
+					numFaces++;
 
-						}
-					}
-					else if (blocks.getBlock(BlockPosition(x, y + 1, z)) == BlockType::EMPTY) {
-						// If it's the farthest bottom, we still need to render the bottom face
+				}
+				//Bottom faces
+				//qualifications for bottom face: Block to the bottom is empty
+				if (y > 0) {
+					if (blocks.getBlock(BlockPosition(x, y - 1, z)) == BlockType::EMPTY) {
 						integrateFace(current, Faces::BOTTOM_F);
 						numFaces++;
 
 					}
-
 				}
 
-				addIndices(numFaces);
+			addIndices(numFaces);
 
 			}
 
 		}
 	}
-	auto end = std::chrono::high_resolution_clock::now();
+	/*auto end = std::chrono::high_resolution_clock::now();
 	auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
-	std::cout << "GenFaces time: " << duration.count() << " milliseconds" << std::endl;
+	std::cout << "GenFaces time: " << duration.count() << " milliseconds" << std::endl;*/
 
 }
 
@@ -247,11 +244,6 @@ void Chunk::initializeTexture() {
 		texture = new Texture(GL_TEXTURE_2D, "assets/MinecraftAtlas.png");
 		texture->Load();
 	}
-}
-
-void Chunk::intitializeNoiseGenerator() {
-	noiseGenerator.SetNoiseType(FastNoiseLite::NoiseType_Perlin); // Set the noise type to Perlin noise
-	noiseGenerator.SetFrequency(0.02f);
 }
 
 void Chunk::cleanupTexture() {

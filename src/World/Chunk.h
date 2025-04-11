@@ -6,11 +6,11 @@
 #include <array>
 #include <glm/vec3.hpp>
 #include <glm/ext/vector_float2.hpp>
-#include "../../LinkerStuff/dependencies/FastNoiseLite.h"
 #include "../Texture.h"
 #include "../Shader.h"
 #include <iostream>
 #include <chrono>
+#include "Terrain.h"
 
 using BlockPosition = glm::vec3; // Using glm's ivec3 for block positions
 
@@ -33,7 +33,6 @@ public:
 	bool isGenerated = false;
 
 	static Texture* texture;
-	static FastNoiseLite noiseGenerator; // Noise generator for heightmap
 	static std::array<std::array<std::array<float, 4>, 6>, 256> cachedUVs;
 
 	static void initializeTexture();
