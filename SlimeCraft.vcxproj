@@ -35,6 +35,7 @@
     <ClInclude Include="src\Shader.h" />
     <ClInclude Include="src\Texture.h" />
     <ClInclude Include="src\World\Chunk.h" />
+    <ClInclude Include="src\World\Terrain.h" />
     <ClInclude Include="src\World\World.h" />
     <ClInclude Include="src\World\World_Constants.h" />
   </ItemGroup>

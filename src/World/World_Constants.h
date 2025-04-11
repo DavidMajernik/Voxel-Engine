@@ -9,7 +9,7 @@ const uint8_t chunkSize = 32;
 const uint8_t chunkHeight = 32; // Maximum height of the chunk
 const int chunkArea = chunkSize * chunkSize;
 const int chunkVolume = chunkArea * chunkHeight;
-static const int renderDistance = 3; // The distance in chunks to render around the player
+static const int renderDistance = 8; // The distance in chunks to render around the player
 static const int unloadDistance = renderDistance + 1;
 
 enum BlockType : uint8_t {

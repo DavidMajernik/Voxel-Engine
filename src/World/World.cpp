@@ -6,8 +6,9 @@ World::World() {
 	chunkPos = glm::ivec2(0.0f, 0.0f); // Initialize chunk chunkPos to (0, 0)
 	processingChunks = std::unordered_set<glm::ivec2>();
 	Chunk::initializeTexture();
-	Chunk::intitializeNoiseGenerator(); // Initialize the texture and noise generator for chunks
+	Terrain::initializeNoiseGenerator();
 	Chunk::cacheUVsFromAtlas();
+
 }
 
 void World::updateChunks(glm::vec3 camPos)
@@ -26,7 +27,6 @@ void World::updateChunks(glm::vec3 camPos)
 			glm::ivec2 chunkKey = glm::ivec2(chunkPos.x + x, chunkPos.y + z);
 			// Check if the chunk already exists in the map
 			if (loadedChunkMap.find(chunkKey) == loadedChunkMap.end() &&
-				futureChunkMap.find(chunkKey) == futureChunkMap.end() &&
 				processingChunks.find(chunkKey) == processingChunks.end())
 			{
 				// If it doesn't exist, create a new chunk at the calculated chunkPos
@@ -62,6 +62,23 @@ void World::updateChunks(glm::vec3 camPos)
 			it = futureChunkMap.erase(it);
 		}
 	}
+	
+	auto start = std::chrono::high_resolution_clock::now();
+    for (auto it = loadedChunkMap.begin(); it != loadedChunkMap.end(); ) {
+        Chunk& chunkRef = it->second;
+        glm::ivec2 chunkCoord(chunkRef.chunkPos.x / chunkSize, chunkRef.chunkPos.z / chunkSize);
+
+        if (!chunkRef.isGenerated) {
+			chunkRef.Delete();
+			chunkRef.genFaces();
+			chunkBuildQueue.push(chunkCoord);
+        }
+        it++;
+    }
+	auto end = std::chrono::high_resolution_clock::now();
+	auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+	std::cout << "GenFaces time: " << duration.count() << " milliseconds" << std::endl;
+
 
 	for (auto it = loadedChunkMap.begin(); it != loadedChunkMap.end(); ) {
 
@@ -70,13 +87,11 @@ void World::updateChunks(glm::vec3 camPos)
 
 		if (!chunkRef.isGenerated) {
 
-			chunkRef.Delete();
-			chunkRef.genFaces();
 			chunkRef.buildChunk();
 			chunkRef.isGenerated = true;
 		}
 		it++;
-		
+
 	}
 
 	// Iterate over the buffer distance and add to buffered set

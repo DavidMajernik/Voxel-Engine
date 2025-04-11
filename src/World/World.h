@@ -8,6 +8,7 @@
 #include <future>
 #include <queue>
 #include <unordered_set>
+#include "Terrain.h"
 
 
 class World  // A class to manage the world and its chunks
@@ -18,6 +19,7 @@ public:
 	std::unordered_map<glm::ivec2, std::future<Chunk>> futureChunkMap; // Map of chunk positions to future chunks (if using async loading)
 	std::unordered_map<glm::ivec2, Chunk> loadedChunkMap;
 	std::unordered_set<glm::ivec2> processingChunks;
+	std::queue<glm::ivec2> chunkBuildQueue;
 	glm::ivec2 chunkPos;
 
 	World();

@@ -74,8 +74,8 @@ int main()
     // -----------------------------
     glEnable(GL_DEPTH_TEST);
 	glad_glFrontFace(GL_CW); // Set the front face to clockwise
-	//glEnable(GL_CULL_FACE); // Enable face culling
-	//glCullFace(GL_BACK); // Cull back faces (the default is GL_BACK, but it's good to be explicit)
+	glEnable(GL_CULL_FACE); // Enable face culling
+	glCullFace(GL_BACK); // Cull back faces (the default is GL_BACK, but it's good to be explicit)
    
 
     // build and compile our shader zprogram

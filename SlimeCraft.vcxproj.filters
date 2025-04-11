@@ -65,6 +65,9 @@
     <ClInclude Include="src\World\World_Constants.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\World\Terrain.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="shaders\6.3.coordinate_systems.fs">
