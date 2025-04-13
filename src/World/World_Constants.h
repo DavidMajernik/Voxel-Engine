@@ -5,12 +5,12 @@
 #include <glm/vec2.hpp>
 #include <array>
 
-const uint8_t chunkSize = 32;
-const uint8_t chunkHeight = 32; // Maximum height of the chunk
-const int chunkArea = chunkSize * chunkSize;
-const int chunkVolume = chunkArea * chunkHeight;
-static const int renderDistance = 8; // The distance in chunks to render around the player
-static const int unloadDistance = renderDistance + 1;
+constexpr uint8_t chunkSize = 32;
+constexpr int chunkHeight = 64; // Maximum height of the chunk
+constexpr int chunkArea = chunkSize * chunkSize;
+constexpr int chunkVolume = chunkArea * chunkHeight;
+constexpr int renderDistance = 5; // The distance in chunks to render around the player
+constexpr int unloadDistance = renderDistance + 1;
 
 enum BlockType : uint8_t {
 	EMPTY,

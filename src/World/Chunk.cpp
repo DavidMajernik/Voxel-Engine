@@ -4,6 +4,8 @@ Texture* Chunk::texture = nullptr; // Initialize the static texture pointer to n
 
 std::array<std::array<std::array<float, 4>, 6>, 256> Chunk::cachedUVs;
 
+std::array<std::array<int, chunkSize>, chunkSize> Chunk::heightMap;
+
 Chunk::Chunk() : chunkPos(glm::ivec3(0)), indexCount(0), chunkVAO(0), chunkVertexVBO(0), chunkUVVBO(0), chunkEBO(0), chunkAOBO(0) {
 	// No need to call blocks() explicitly
 	AOVals = std::make_unique<std::vector<uint8_t>>();
@@ -14,47 +16,55 @@ Chunk::Chunk(glm::vec3 pos, std::unordered_map<glm::ivec2, Chunk>* loadedChunkMa
 	chunkUVs = std::make_unique<std::vector<glm::vec2>>();
 	chunkIndices = std::make_unique<std::vector<unsigned int>>();
 	AOVals = std::make_unique<std::vector<uint8_t>>();
-	genBlocks(genHeightMap()); // Generate blocks for the chunk
-	//genFaces(); // Generate the faces for the chunk based on the blocks
+	heightMap = Terrain::genHeightMap(chunkPos.x, chunkPos.z); // Generate the heightmap for the chunk
+	genBlocks(heightMap); // Generate blocks for the chunk
 
 
 }
 
 int Chunk::getBlockIndex(const BlockPosition& blockPos) {
-	// Calculate the 1D index from 3D block position
-	return blockPos.x + blockPos.y * chunkSize + blockPos.z * chunkArea;
+	if (blockPos.x < 0 || blockPos.x >= chunkSize ||
+		blockPos.y < 0 || blockPos.y >= chunkHeight ||
+		blockPos.z < 0 || blockPos.z >= chunkSize) {
+		std::cerr << "Block position out of bounds: (" << blockPos.x << ", " << blockPos.y << ", " << blockPos.z << ")" << std::endl;
+		return -1; // Return an invalid index
+	}
+	
+	return blockPos.x + blockPos.y * chunkSize + blockPos.z * chunkSize * chunkHeight;
 }
 
 uint8_t Chunk::ChunkData::getBlock(const BlockPosition& blockPos) const {
-	return blocks.at(Chunk::getBlockIndex(blockPos));
+	int index = Chunk::getBlockIndex(blockPos);
+	if (index >= 0 && index < blocks.size()) {
+		return blocks.at(index);
+	}
+	else {
+		std::cerr << "GetBlock out of bounds: " << index << std::endl;
+		return BlockType::EMPTY; // Return a default value or handle the error appropriately
+	}
 }
 
 void Chunk::ChunkData::setBlock(const BlockPosition& blockPos, uint8_t blockType) {
-	blocks.at(Chunk::getBlockIndex(blockPos)) = blockType;
-}
-
-std::vector<std::vector<float>> Chunk::genHeightMap()
-{
-	std::vector<std::vector<float>> heightMap = std::vector<std::vector<float>>(chunkSize, std::vector<float>(chunkSize));
-
-	// Simple heightmap generation (for example, using Perlin noise or any other algorithm)
-	for (int x = 0; x < chunkSize; x++) {
-		for (int z = 0; z < chunkSize; z++) {
-			float noiseValue = Terrain::getNoiseAt((x + chunkPos.x), (z + chunkPos.z));
-			heightMap[x][z] = noiseValue;
-		}
+	int index = Chunk::getBlockIndex(blockPos);
+	if (index >= 0 && index < blocks.size()) {
+		blocks.at(index) = blockType;
 	}
-	return heightMap;
-
+	else {
+	std::cerr << "SetBlock out of bounds: " << index << std::endl;
+	}
 }
 
-void Chunk::genBlocks(std::vector<std::vector<float>> heightMap)
+void Chunk::genBlocks(std::array<std::array<int, chunkSize>, chunkSize> &heightMap)
 {
-
 	for (int x = 0; x < chunkSize; x++) { // Loop through the x-axis of the chunk
 		for (int z = 0; z < chunkSize; z++) {
 
-			int columnHeight = static_cast<int>(heightMap[x][z]); // Get the height for the current column from the heightmap
+			if (x < 0 || x >= chunkSize || z < 0 || z >= chunkSize) {
+				std::cerr << "Index out of bounds: x=" << x << ", z=" << z << std::endl;
+				continue;
+			}
+
+			int columnHeight = heightMap[x][z]; // Get the height for the current column from the heightmap
 
 			for (int y = 0; y < chunkHeight; y++) {
 
@@ -79,11 +89,10 @@ void Chunk::genFaces() {
 
 				
 				BlockPosition current = BlockPosition(x, y, z);
-
+				
 				if (blocks.getBlock(current) == BlockType::EMPTY) continue;
 
 				int numFaces = 0;
-				uint8_t above = getBlockGlobal(BlockPosition(x, y + 1, z));
 
 				//Front faces
 				//qualifications for front face: Block to the front is empty
@@ -352,9 +361,6 @@ void Chunk::generateAOVals(BlockPosition blockPos, Faces face) {
 			side1Pos = BlockPosition(blockPos.x + cornerOffset.x, blockPos.y + cornerOffset.y, blockPos.z);
 			side2Pos = BlockPosition(blockPos.x, blockPos.y + cornerOffset.y, blockPos.z + cornerOffset.z);
 			cornerPos = BlockPosition(blockPos.x + cornerOffset.x, blockPos.y + cornerOffset.y, blockPos.z + cornerOffset.z);
-			/*side1Pos = blockPos + cornerOffset;
-			side2Pos = blockPos + cornerOffset;
-			cornerPos = blockPos + cornerOffset;*/
 			break;
 		case BOTTOM_F:
 			side1Pos = BlockPosition(blockPos.x + cornerOffset.x, blockPos.y + cornerOffset.y, blockPos.z);

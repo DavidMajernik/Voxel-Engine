@@ -34,14 +34,13 @@ public:
 
 	static Texture* texture;
 	static std::array<std::array<std::array<float, 4>, 6>, 256> cachedUVs;
+	static std::array<std::array<int, chunkSize>, chunkSize> heightMap;
 
 	static void initializeTexture();
 	static void cleanupTexture();
-	static void intitializeNoiseGenerator();
 	static void cacheUVsFromAtlas();
 
-	std::vector<std::vector<float>> genHeightMap();
-	void genBlocks(std::vector<std::vector<float>> heightMap);
+	void genBlocks(std::array<std::array<int, chunkSize>, chunkSize> &heightMap);
 	void genFaces();
 	void integrateFace(BlockPosition blockPos, Faces face);
 	void addIndices(int amtFaces);
