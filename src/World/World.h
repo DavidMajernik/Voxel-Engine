@@ -8,7 +8,6 @@
 #include <future>
 #include <queue>
 #include <unordered_set>
-#include "Terrain.h"
 
 
 class World  // A class to manage the world and its chunks

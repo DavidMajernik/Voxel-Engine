@@ -5,8 +5,8 @@ World::World() {
 	// Constructor can be empty or initialize any necessary variables if needed
 	chunkPos = glm::ivec2(0.0f, 0.0f); // Initialize chunk chunkPos to (0, 0)
 	processingChunks = std::unordered_set<glm::ivec2>();
+	Terrain::initializeNoiseGenerator(1337, 0.008f, 6, 2.0f, 0.25f);
 	Chunk::initializeTexture();
-	Terrain::initializeNoiseGenerator();
 	Chunk::cacheUVsFromAtlas();
 
 }
@@ -56,16 +56,24 @@ void World::updateChunks(glm::vec3 camPos)
 	
 	//auto start = std::chrono::high_resolution_clock::now();
     for (auto it = loadedChunkMap.begin(); it != loadedChunkMap.end(); ) {
+		
         Chunk& chunkRef = it->second;
         glm::ivec2 chunkCoord(chunkRef.chunkPos.x / chunkSize, chunkRef.chunkPos.z / chunkSize);
 
         if (!chunkRef.isGenerated) {
+			auto start = std::chrono::high_resolution_clock::now();
+
 			chunkRef.Delete();
 			chunkRef.genFaces();
 			chunkRef.buildChunk();
 			chunkRef.isGenerated = true;
+
+			auto end = std::chrono::high_resolution_clock::now();
+			auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+			std::cout << "Made Chunk at: " << it->first.x << " " << it->first.y << " in " << duration.count() << " milliseconds" << std::endl;
         }
         it++;
+		
     }
 	/*auto end = std::chrono::high_resolution_clock::now();
 	auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);

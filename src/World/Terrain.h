@@ -2,66 +2,44 @@
 #include "World_Constants.h"
 #include "../../LinkerStuff/dependencies/FastNoiseLite.h"
 
-
-static FastNoiseLite noiseGenerator; // Noise generator for heightmap
-static FastNoiseLite noiseGenerator2; // Noise generator for heightmap
-static FastNoiseLite noiseGenerator3; // Noise generator for heightmap
-static FastNoiseLite noiseGenerator4; // Noise generator for heightmap
-
-
 class Terrain {
 
 public:
 
-	static void initializeNoiseGenerator() {
-		noiseGenerator.SetNoiseType(FastNoiseLite::NoiseType_Perlin); // Set the noise type to Perlin noise
-		noiseGenerator.SetFrequency(0.02f);
+    static void initializeNoiseGenerator(int seed, float freq, int octaves, float lucunarity, float gain) {
 
-		noiseGenerator2.SetNoiseType(FastNoiseLite::NoiseType_Perlin); // Set the noise type to Perlin noise
-		noiseGenerator2.SetFrequency(0.1f);
+        noiseGenerator = FastNoiseLite(seed);
+        noiseGenerator.SetNoiseType(FastNoiseLite::NoiseType_Perlin); // Set the noise type to Perlin noise
+        noiseGenerator.SetFractalType(FastNoiseLite::FractalType_FBm);
+        noiseGenerator.SetFrequency(freq);
+        noiseGenerator.SetFractalOctaves(octaves);
+        noiseGenerator.SetFractalLacunarity(lucunarity);
+        noiseGenerator.SetFractalGain(gain);
+    }
 
-		noiseGenerator3.SetNoiseType(FastNoiseLite::NoiseType_Perlin); // Set the noise type to Perlin noise
-		noiseGenerator3.SetFrequency(0.2f);
+    static std::array<std::array<int, chunkSize>, chunkSize> genHeightMap(float chunkPosX, float chunkPosZ) {
+        
+        std::array<std::array<int, chunkSize>, chunkSize> heightMap = std::array<std::array<int, chunkSize>, chunkSize>();
 
-		noiseGenerator4.SetNoiseType(FastNoiseLite::NoiseType_Perlin); // Set the noise type to Perlin noise
-		noiseGenerator4.SetFrequency(0.3f);
-	}
+        float noiseValue;
 
-	static std::array<std::array<int, chunkSize>, chunkSize> genHeightMap(float chunkPosX, float chunkPosZ) {
-		
-		std::array<std::array<int, chunkSize>, chunkSize> heightMap = std::array<std::array<int, chunkSize>, chunkSize>();
+        for (int x = 0; x < chunkSize; x++) {
+            for (int z = 0; z < chunkSize; z++) {
 
-		float noiseValue;
-		float noiseValue2;
-		float noiseValue3;
-		float noiseValue4;
-		float result;
+                noiseValue = noiseGenerator.GetNoise(static_cast<float>(x + chunkPosX), static_cast<float>(z + chunkPosZ));
+                noiseValue = (noiseValue + 1.0f) * 0.5f;
 
-		for (int x = 0; x < chunkSize; x++) {
-			for (int z = 0; z < chunkSize; z++) {
+                //noiseValue = (noiseValue) * static_cast<float>(chunkHeight/2) + 1.0f + static_cast<float>(chunkHeight / 2);
+                noiseValue = (noiseValue) * chunkHeight + 1.0f;    
 
-				noiseValue = noiseGenerator.GetNoise(static_cast<float>(x + chunkPosX), static_cast<float>(z + chunkPosZ));
-				noiseValue = (noiseValue + 1.0f) * 0.5f;
+                heightMap[x][z] = static_cast<int>(noiseValue);
 
-				noiseValue2 = noiseGenerator2.GetNoise(static_cast<float>(x + chunkPosX), static_cast<float>(z + chunkPosZ));
-				noiseValue2 = (noiseValue2 + 1.0f) * 0.5f;
+            }
+        }
 
-				noiseValue3 = noiseGenerator3.GetNoise(static_cast<float>(x + chunkPosX), static_cast<float>(z + chunkPosZ));
-				noiseValue3 = (noiseValue3 + 1.0f) * 0.5f;
-
-				noiseValue4 = noiseGenerator4.GetNoise(static_cast<float>(x + chunkPosX), static_cast<float>(z + chunkPosZ));
-				noiseValue4 = (noiseValue4 + 1.0f) * 0.5f;
-
-				result = (noiseValue * noiseValue2 * noiseValue3 * noiseValue4) * chunkHeight + 1.0f;
-
-				heightMap[x][z] = static_cast<int>(result);
-
-			}
-		}
-
-		return heightMap;
-	}
+        return heightMap;
+    }
 
 private: 
-
+	static FastNoiseLite noiseGenerator;
 };
