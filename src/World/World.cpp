@@ -54,7 +54,6 @@ void World::updateChunks(glm::vec3 camPos)
 	}
 
 	
-	//auto start = std::chrono::high_resolution_clock::now();
     for (auto it = loadedChunkMap.begin(); it != loadedChunkMap.end(); ) {
 		
         Chunk& chunkRef = it->second;
@@ -75,9 +74,6 @@ void World::updateChunks(glm::vec3 camPos)
         it++;
 		
     }
-	/*auto end = std::chrono::high_resolution_clock::now();
-	auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
-	std::cout << "GenFaces time: " << duration.count() << " milliseconds" << std::endl;*/
 
 
 	// Iterate over the buffer distance and add to buffered set
