@@ -25,7 +25,10 @@ void World::updateChunks(glm::vec3 camPos)
 	{
 		for (int z = -renderDistance; z <= renderDistance; z++)
 		{
+			
+
 			glm::ivec2 chunkKey = glm::ivec2(chunkPos.x + x, chunkPos.y + z);
+
 			// Check if the chunk already exists in the map
 			if (loadedChunkMap.find(chunkKey) == loadedChunkMap.end() &&
 				processingChunks.find(chunkKey) == processingChunks.end())
@@ -33,47 +36,31 @@ void World::updateChunks(glm::vec3 camPos)
 				//// If it doesn't exist, create a new chunk at the calculated chunkPos
 				processingChunks.insert(chunkKey);
 				loadedChunkMap[chunkKey] = Chunk(glm::vec3(chunkKey.x * chunkSize, 0.0f, chunkKey.y * chunkSize), &loadedChunkMap);
-				try {
-					for (const auto& offset : neighborOffsets) {
-						glm::vec2 neighborKey = glm::vec2(chunkKey.x + offset.x, chunkKey.y + offset.y);
-						auto neighborIt = loadedChunkMap.find(neighborKey);
-						if (neighborIt != loadedChunkMap.end()) {
 
-							neighborIt->second.isGenerated = false; // Force rebuild neighbors of a newly loaded 
-						}
+				for (const auto& offset : neighborOffsets) {
+					glm::vec2 neighborKey = glm::vec2(chunkKey.x + offset.x, chunkKey.y + offset.y);
+					auto neighborIt = loadedChunkMap.find(neighborKey);
+					if (neighborIt != loadedChunkMap.end()) {
+
+						neighborIt->second.isGenerated = false; // Force rebuild neighbors of a newly loaded 
 					}
 				}
-				catch (const std::exception& e) {
-					// Handle the exception or log it
-					std::cerr << "Exception: " << e.what() << std::endl;
-				}
+
 				processingChunks.erase(chunkKey); // Remove from processing set
 
 			}
+
+			if (!loadedChunkMap[chunkKey].isGenerated) {
+
+				loadedChunkMap[chunkKey].Delete();
+				loadedChunkMap[chunkKey].genFaces();
+				loadedChunkMap[chunkKey].buildChunk();
+				loadedChunkMap[chunkKey].isGenerated = true;
+			}
+			
+
 		}
 	}
-
-	
-    for (auto it = loadedChunkMap.begin(); it != loadedChunkMap.end(); ) {
-		
-        Chunk& chunkRef = it->second;
-        glm::ivec2 chunkCoord(chunkRef.chunkPos.x / chunkSize, chunkRef.chunkPos.z / chunkSize);
-
-        if (!chunkRef.isGenerated) {
-			auto start = std::chrono::high_resolution_clock::now();
-
-			chunkRef.Delete();
-			chunkRef.genFaces();
-			chunkRef.buildChunk();
-			chunkRef.isGenerated = true;
-
-			auto end = std::chrono::high_resolution_clock::now();
-			auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
-			std::cout << "Made Chunk at: " << it->first.x << " " << it->first.y << " in " << duration.count() << " milliseconds" << std::endl;
-        }
-        it++;
-		
-    }
 
 
 	// Iterate over the buffer distance and add to buffered set
