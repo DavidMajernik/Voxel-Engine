@@ -9,7 +9,7 @@ public:
     static void initializeNoiseGenerator(int seed, float freq, int octaves, float lucunarity, float gain) {
 
         noiseGenerator = FastNoiseLite(seed);
-        noiseGenerator.SetNoiseType(FastNoiseLite::NoiseType_Perlin); // Set the noise type to Perlin noise
+        noiseGenerator.SetNoiseType(FastNoiseLite::NoiseType_Perlin); 
         noiseGenerator.SetFractalType(FastNoiseLite::FractalType_FBm);
         noiseGenerator.SetFrequency(freq);
         noiseGenerator.SetFractalOctaves(octaves);
@@ -29,7 +29,6 @@ public:
                 noiseValue = noiseGenerator.GetNoise(static_cast<float>(x + chunkPosX), static_cast<float>(z + chunkPosZ));
                 noiseValue = (noiseValue + 1.0f) * 0.5f;
 
-                //noiseValue = (noiseValue) * static_cast<float>(chunkHeight/2) + 1.0f + static_cast<float>(chunkHeight / 2);
                 noiseValue = (noiseValue) * chunkHeight + 1.0f;    
 
                 heightMap[x][z] = static_cast<int>(noiseValue);

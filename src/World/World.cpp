@@ -14,7 +14,6 @@ World::World() {
 void World::updateChunks(glm::vec3 camPos)
 {
 
-	//std::cout << camera->Position.x << " " << camera->Position.y << " " << camera->Position.z << std::endl;
 	chunkPos = glm::ivec2(
 		static_cast<int>(camPos.x / chunkSize),
 		static_cast<int>(camPos.z / chunkSize)

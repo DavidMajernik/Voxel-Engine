@@ -7,7 +7,7 @@ std::array<std::array<std::array<float, 4>, 6>, 256> Chunk::cachedUVs;
 std::array<std::array<int, chunkSize>, chunkSize> Chunk::heightMap;
 
 Chunk::Chunk() : chunkPos(glm::ivec3(0)), indexCount(0), chunkVAO(0), chunkVertexVBO(0), chunkUVVBO(0), chunkEBO(0), chunkAOBO(0) {
-	// No need to call blocks() explicitly
+	
 	AOVals = std::make_unique<std::vector<uint8_t>>();
 
 }
@@ -16,8 +16,8 @@ Chunk::Chunk(glm::vec3 pos, std::unordered_map<glm::ivec2, Chunk>* loadedChunkMa
 	chunkUVs = std::make_unique<std::vector<glm::vec2>>();
 	chunkIndices = std::make_unique<std::vector<unsigned int>>();
 	AOVals = std::make_unique<std::vector<uint8_t>>();
-	heightMap = Terrain::genHeightMap(chunkPos.x, chunkPos.z); // Generate the heightmap for the chunk
-	genBlocks(heightMap); // Generate blocks for the chunk
+	heightMap = Terrain::genHeightMap(chunkPos.x, chunkPos.z); 
+	genBlocks(heightMap); 
 
 
 }
@@ -27,7 +27,7 @@ int Chunk::getBlockIndex(const BlockPosition& blockPos) {
 		blockPos.y < 0 || blockPos.y >= chunkHeight ||
 		blockPos.z < 0 || blockPos.z >= chunkSize) {
 		std::cerr << "Block position out of bounds: (" << blockPos.x << ", " << blockPos.y << ", " << blockPos.z << ")" << std::endl;
-		return -1; // Return an invalid index
+		return -1; 
 	}
 	
 	return blockPos.x + blockPos.y * chunkSize + blockPos.z * chunkSize * chunkHeight;
@@ -40,7 +40,7 @@ uint8_t Chunk::ChunkData::getBlock(const BlockPosition& blockPos) const {
 	}
 	else {
 		std::cerr << "GetBlock out of bounds: " << index << std::endl;
-		return BlockType::EMPTY; // Return a default value or handle the error appropriately
+		return BlockType::EMPTY; 
 	}
 }
 
@@ -56,7 +56,7 @@ void Chunk::ChunkData::setBlock(const BlockPosition& blockPos, uint8_t blockType
 
 void Chunk::genBlocks(std::array<std::array<int, chunkSize>, chunkSize> &heightMap)
 {
-	for (int x = 0; x < chunkSize; x++) { // Loop through the x-axis of the chunk
+	for (int x = 0; x < chunkSize; x++) {
 		for (int z = 0; z < chunkSize; z++) {
 
 			if (x < 0 || x >= chunkSize || z < 0 || z >= chunkSize) {
@@ -64,7 +64,7 @@ void Chunk::genBlocks(std::array<std::array<int, chunkSize>, chunkSize> &heightM
 				continue;
 			}
 
-			int columnHeight = heightMap[x][z]; // Get the height for the current column from the heightmap
+			int columnHeight = heightMap[x][z];
 
 			for (int y = 0; y < chunkHeight; y++) {
 
@@ -81,7 +81,7 @@ void Chunk::genBlocks(std::array<std::array<int, chunkSize>, chunkSize> &heightM
 }
 
 void Chunk::genFaces() {
-	//auto start = std::chrono::high_resolution_clock::now();
+	
 	for (int x = 0; x < chunkSize; x++) {
 		for (int z = 0; z < chunkSize; z++) {
 
@@ -154,22 +154,19 @@ void Chunk::genFaces() {
 
 		}
 	}
-	/*auto end = std::chrono::high_resolution_clock::now();
-	auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
-	std::cout << "GenFaces time: " << duration.count() << " milliseconds" << std::endl;*/
 
 }
 
 void Chunk::integrateFace(BlockPosition blockPos, Faces face) {
 
-	BlockType type = static_cast<BlockType>(blocks.getBlock(blockPos)); // Get the block type at the given position
+	BlockType type = static_cast<BlockType>(blocks.getBlock(blockPos)); 
 
-	// Apply chunk position offset to vertices
+	
 	for (auto& vertex : rawVertexData.at(face)) {
 
 		chunkVerts->push_back(glm::vec3(static_cast<float>(vertex.x + blockPos.x + chunkPos.x),
 			static_cast<float>(vertex.y + blockPos.y + chunkPos.y),
-			static_cast<float>(vertex.z + blockPos.z + chunkPos.z))); // Add the vertex to the chunkVerts vector
+			static_cast<float>(vertex.z + blockPos.z + chunkPos.z))); 
 
 	}
 
@@ -196,38 +193,37 @@ void Chunk::addIndices(int amtFaces)
 		chunkIndices->push_back(3 + indexCount);
 		chunkIndices->push_back(0 + indexCount);
 
-		indexCount += 4; // Each face has 4 vertices, so we increment by 4
+		indexCount += 4; 
 	}
 }
 
 void Chunk::buildChunk()
 {
-	//std::cout << "Verts: " << chunkVerts->size() << " | AO: " << AOVals->size() << std::endl;
-
-	glGenVertexArrays(1, &chunkVAO); // Generate a Vertex Array Object for the chunk
-	glBindVertexArray(chunkVAO); // Bind the VAO
+	
+	glGenVertexArrays(1, &chunkVAO); 
+	glBindVertexArray(chunkVAO); 
 
 
 	glGenBuffers(1, &chunkVertexVBO);
-	glBindBuffer(GL_ARRAY_BUFFER, chunkVertexVBO); // Bind the vertex buffer
-	glBufferData(GL_ARRAY_BUFFER, chunkVerts->size() * sizeof(glm::vec3), chunkVerts->data(), GL_STATIC_DRAW); // Load the vertex data into the buffer
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0); // Set the vertex attribute pointer
-	glEnableVertexAttribArray(0); // Enable the vertex attribute array
+	glBindBuffer(GL_ARRAY_BUFFER, chunkVertexVBO); 
+	glBufferData(GL_ARRAY_BUFFER, chunkVerts->size() * sizeof(glm::vec3), chunkVerts->data(), GL_STATIC_DRAW); 
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0); 
+	glEnableVertexAttribArray(0); 
 
 	glGenBuffers(1, &chunkUVVBO);
-	glBindBuffer(GL_ARRAY_BUFFER, chunkUVVBO); // Bind the vertex buffer
+	glBindBuffer(GL_ARRAY_BUFFER, chunkUVVBO); 
 	glBufferData(GL_ARRAY_BUFFER, chunkUVs->size() * sizeof(glm::vec2), chunkUVs->data(), GL_STATIC_DRAW);
 	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void*)0);
 	glEnableVertexAttribArray(1);
 
 	glGenBuffers(1, &chunkEBO);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, chunkEBO); // Bind the index buffer
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, chunkEBO); 
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, chunkIndices->size() * sizeof(unsigned int), chunkIndices->data(), GL_STATIC_DRAW);
 
 	glGenBuffers(1, &chunkAOBO);
 	glBindBuffer(GL_ARRAY_BUFFER, chunkAOBO);
 	glBufferData(GL_ARRAY_BUFFER, AOVals->size() * sizeof(uint8_t), AOVals->data(), GL_STATIC_DRAW);
-	glVertexAttribIPointer(2, 1, GL_UNSIGNED_BYTE, sizeof(uint8_t), (void*)0); // Correctly interpret as integer
+	glVertexAttribIPointer(2, 1, GL_UNSIGNED_BYTE, sizeof(uint8_t), (void*)0); 
 	glEnableVertexAttribArray(2);
 
 	glBindVertexArray(0);
@@ -236,12 +232,12 @@ void Chunk::buildChunk()
 
 void Chunk::render(Shader& shader)
 {
-	shader.use(); // Use the shader program
+	shader.use(); 
 	glBindVertexArray(chunkVAO);
-	texture->Bind(GL_TEXTURE0); // Bind the texture for the chunk
+	texture->Bind(GL_TEXTURE0); 
 
-	glDrawElements(GL_TRIANGLES, chunkIndices->size(), GL_UNSIGNED_INT, 0); // Draw the chunk using the indices
-	glBindVertexArray(0); // Unbind the VAO to avoid accidental modification
+	glDrawElements(GL_TRIANGLES, chunkIndices->size(), GL_UNSIGNED_INT, 0); 
+	glBindVertexArray(0); 
 	GLenum error;
 	if ((error = glGetError()) != GL_NO_ERROR) {
 		std::cerr << "OpenGL Error: " << error << std::endl;
@@ -278,7 +274,7 @@ void Chunk::Delete()
 }
 
 void Chunk::cacheUVsFromAtlas() {
-	int atlasSize = 16; // Adjust if your atlas isn't 16x16
+	int atlasSize = 16; 
 	float spriteSize = 1.0f / static_cast<float>(atlasSize);
 
 	for (const auto& textureIndex : textureIndices) {
@@ -370,9 +366,9 @@ void Chunk::generateAOVals(BlockPosition blockPos, Faces face) {
 		}
 
 
-		hasSide1 = getBlockGlobal(side1Pos) != BlockType::EMPTY; //isBlockSolid(side1Pos);
-		hasSide2 = getBlockGlobal(side2Pos) != BlockType::EMPTY; //isBlockSolid(side2Pos);
-		hasCorner = getBlockGlobal(cornerPos) != BlockType::EMPTY; //isBlockSolid(cornerPos);
+		hasSide1 = getBlockGlobal(side1Pos) != BlockType::EMPTY; 
+		hasSide2 = getBlockGlobal(side2Pos) != BlockType::EMPTY; 
+		hasCorner = getBlockGlobal(cornerPos) != BlockType::EMPTY; 
 
 
 		AOVals->push_back(vertexAO(hasSide1, hasSide2, hasCorner));
@@ -418,5 +414,5 @@ uint8_t Chunk::getBlockGlobal(const BlockPosition& pos) const {
 		return neighbor.blocks.getBlock(localPos);
 	}
 
-	return BlockType::EMPTY; // Default if chunk isn't loaded
+	return BlockType::EMPTY;
 }
