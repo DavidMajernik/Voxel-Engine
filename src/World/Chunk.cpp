@@ -6,6 +6,8 @@ std::array<std::array<std::array<float, 4>, 6>, 256> Chunk::cachedUVs;
 
 std::array<std::array<int, chunkSize>, chunkSize> Chunk::heightMap;
 
+//std::unique_ptr<uint8_t[]> Chunk::caveMap;
+
 Chunk::Chunk() : chunkPos(glm::ivec3(0)), indexCount(0), chunkVAO(0), chunkVertexVBO(0), chunkUVVBO(0), chunkEBO(0), chunkAOBO(0) {
 	
 	AOVals = std::make_unique<std::vector<uint8_t>>();
@@ -17,6 +19,7 @@ Chunk::Chunk(glm::vec3 pos, std::unordered_map<glm::ivec2, Chunk>* loadedChunkMa
 	chunkIndices = std::make_unique<std::vector<unsigned int>>();
 	AOVals = std::make_unique<std::vector<uint8_t>>();
 	heightMap = Terrain::genHeightMap(chunkPos.x, chunkPos.z); 
+	//caveMap = Terrain::genCaves(heightMap, chunkPos.x, chunkPos.z);
 	genBlocks(heightMap); 
 
 
@@ -70,6 +73,7 @@ void Chunk::genBlocks(std::array<std::array<int, chunkSize>, chunkSize> &heightM
 
 				if (y < columnHeight) {
 					blocks.setBlock(BlockPosition(x, y, z), (y == columnHeight - 1) ? BlockType::GRASS : BlockType::DIRT);
+					//blocks.setBlock(BlockPosition(x, y, z), caveMap[x + y * chunkSize + z * chunkSize * chunkHeight]);
 				}
 				else {
 					blocks.setBlock(BlockPosition(x, y, z), BlockType::EMPTY);
@@ -197,7 +201,7 @@ void Chunk::addIndices(int amtFaces)
 	}
 }
 
-void Chunk::buildChunk()
+void Chunk::uploadToGPU()
 {
 	
 	glGenVertexArrays(1, &chunkVAO); 

@@ -1,73 +1,75 @@
-#pragma once
-#include "World_Constants.h"
-#include "../../LinkerStuff/dependencies/FastNoiseLite.h"
+#pragma once  
+#include "World_Constants.h"  
+#include "../../LinkerStuff/dependencies/FastNoiseLite.h"  
+#include <memory> // Ensure std::unique_ptr is included  
 
-class Terrain {
+class Terrain {  
 
-public:
+public:  
 
-    static void initializeNoiseGenerator(int seed, float freq, int octaves, float lucunarity, float gain) {
+   static void initializeNoiseGenerator(int seed, float freq, int octaves, float lucunarity, float gain) {  
 
-        noiseGenerator = FastNoiseLite(seed);
-        noiseGenerator.SetNoiseType(FastNoiseLite::NoiseType_Perlin); 
-        noiseGenerator.SetFractalType(FastNoiseLite::FractalType_FBm);
-        noiseGenerator.SetFrequency(freq);
-        noiseGenerator.SetFractalOctaves(octaves);
-        noiseGenerator.SetFractalLacunarity(lucunarity);
-        noiseGenerator.SetFractalGain(gain);
+       noiseGenerator = FastNoiseLite(seed);  
+       noiseGenerator.SetNoiseType(FastNoiseLite::NoiseType_Perlin);  
+       noiseGenerator.SetFractalType(FastNoiseLite::FractalType_FBm);  
+       noiseGenerator.SetFrequency(freq);  
+       noiseGenerator.SetFractalOctaves(octaves);  
+       noiseGenerator.SetFractalLacunarity(lucunarity);  
+       noiseGenerator.SetFractalGain(gain);  
 
-		caveNoiseGenerator = FastNoiseLite(seed);
-		caveNoiseGenerator.SetNoiseType(FastNoiseLite::NoiseType_Perlin);
+       //caveNoiseGenerator = FastNoiseLite(seed);  
+       //caveNoiseGenerator.SetNoiseType(FastNoiseLite::NoiseType_Perlin);  
+       //caveNoiseGenerator.SetFrequency(0.03);  
+   }  
 
+   static std::array<std::array<int, chunkSize>, chunkSize> genHeightMap(float chunkPosX, float chunkPosZ) {  
 
+       std::array<std::array<int, chunkSize>, chunkSize> heightMap = std::array<std::array<int, chunkSize>, chunkSize>();  
 
-    }
+       float noiseValue;  
 
-    static std::array<std::array<int, chunkSize>, chunkSize> genHeightMap(float chunkPosX, float chunkPosZ) {
-        
-        std::array<std::array<int, chunkSize>, chunkSize> heightMap = std::array<std::array<int, chunkSize>, chunkSize>();
+       for (int x = 0; x < chunkSize; x++) {  
+           for (int z = 0; z < chunkSize; z++) {  
 
-        float noiseValue;
+               noiseValue = noiseGenerator.GetNoise(static_cast<float>(x + chunkPosX), static_cast<float>(z + chunkPosZ));  
+               noiseValue = (noiseValue + 1.0f) * 0.5f;  
 
-        for (int x = 0; x < chunkSize; x++) {
-            for (int z = 0; z < chunkSize; z++) {
+               noiseValue = (noiseValue) * chunkHeight + 1.0f;    
 
-                noiseValue = noiseGenerator.GetNoise(static_cast<float>(x + chunkPosX), static_cast<float>(z + chunkPosZ));
-                noiseValue = (noiseValue + 1.0f) * 0.5f;
+               heightMap[x][z] = static_cast<int>(noiseValue);  
 
-                noiseValue = (noiseValue) * chunkHeight + 1.0f;    
+           }  
+       }  
 
-                heightMap[x][z] = static_cast<int>(noiseValue);
+       return heightMap;  
+   }  
 
-            }
-        }
+   //static std::unique_ptr<uint8_t[]> genCaves(std::array<std::array<int, chunkSize>, chunkSize>& heightMap, float chunkPosX, float chunkPosZ) {  
+   //    auto caveMap = std::make_unique<uint8_t[]>(chunkVolume); // Use std::make_unique for heap allocation  
+   //    float noiseValue;  
 
-        return heightMap;
-    }
+   //    for (int x = 0; x < chunkSize; x++) {  
+   //        for (int y = 0; y < chunkHeight; y++) {  
+   //            for (int z = 0; z < chunkSize; z++) {  
+   //                noiseValue = caveNoiseGenerator.GetNoise(static_cast<float>(x + chunkPosX), static_cast<float>(y), static_cast<float>(z + chunkPosZ));  
+   //                noiseValue = (noiseValue + 1.0f) * 0.5f;  
+   //                size_t index = x + y * chunkSize + z * chunkSize * chunkHeight;  
+   //                if (noiseValue > 0.5f) {  
+   //                    caveMap[index] = BlockType::EMPTY;  
+   //                }  
+   //                else {  
+   //                    caveMap[index] = BlockType::STONE;  
+   //                }  
+   //            }  
+   //        }  
+   //    }  
 
-	static std::array<uint8_t, chunkVolume> genCaves(std::array<std::array<int, chunkSize>, chunkSize>& heightMap, float chunkPosX, float chunkPosZ) {
-		std::array<uint8_t, chunkVolume> caveMap = std::array<uint8_t, chunkVolume>();
-		float noiseValue;
-		for (int x = 0; x < chunkSize; x++) {
-			for (int y = 0; y < chunkHeight; y++) {
-				for (int z = 0; z < chunkSize; z++) {
-					noiseValue = caveNoiseGenerator.GetNoise(static_cast<float>(x + chunkPosX), static_cast<float>(y), static_cast<float>(z + chunkPosZ));
-					noiseValue = (noiseValue + 1.0f) * 0.5f;
-					if (noiseValue > 0.5f) {
-						caveMap[x + y * chunkSize + z * chunkSize * chunkHeight] = BlockType::EMPTY;
-					}
-					else {
-						caveMap[x + y * chunkSize + z * chunkSize * chunkHeight] = BlockType::STONE;
-					}
-				}
-			}
-		}
-		return caveMap;
-	}
+   //    return caveMap;  
+   //}  
 
-private:
+private:  
 
-	static FastNoiseLite noiseGenerator;
-	static FastNoiseLite caveNoiseGenerator;
+   static FastNoiseLite noiseGenerator;  
+   //static FastNoiseLite caveNoiseGenerator;  
 
 };

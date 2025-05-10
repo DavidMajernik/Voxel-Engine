@@ -35,6 +35,7 @@ public:
 	static Texture* texture;
 	static std::array<std::array<std::array<float, 4>, 6>, 256> cachedUVs;
 	static std::array<std::array<int, chunkSize>, chunkSize> heightMap;
+	static std::unique_ptr<uint8_t[]> caveMap;
 
 	static void initializeTexture();
 	static void cleanupTexture();
@@ -44,7 +45,7 @@ public:
 	void genFaces();
 	void integrateFace(BlockPosition blockPos, Faces face);
 	void addIndices(int amtFaces);
-	void buildChunk();
+	void uploadToGPU();
 	void render(Shader& shader);
 	void Delete();
 
