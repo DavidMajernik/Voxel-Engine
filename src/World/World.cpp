@@ -33,40 +33,25 @@ void World::updateChunks(glm::vec3 camPos)
 				processingChunks.find(chunkKey) == processingChunks.end())
 			{
 				auto start = std::chrono::high_resolution_clock::now();
+
 				// If it doesn't exist, create a new chunk at the calculated chunkPos
 				processingChunks.insert(chunkKey);
-				loadedChunkMap[chunkKey] = Chunk(glm::vec3(chunkKey.x * chunkSize, 0.0f, chunkKey.y * chunkSize), &loadedChunkMap);
 
-				for (const auto& offset : neighborOffsets) {
-					glm::vec2 neighborKey = glm::vec2(chunkKey.x + offset.x, chunkKey.y + offset.y);
-					auto neighborIt = loadedChunkMap.find(neighborKey);
-					if (neighborIt != loadedChunkMap.end()) {
 
-						neighborIt->second.isGenerated = false; // Force rebuild neighbors of a newly loaded 
-					}
-				}
+
+				loadedChunkMap[chunkKey] = Chunk(glm::vec3(chunkKey.x * chunkSize, 0.0f, chunkKey.y * chunkSize));
+				loadedChunkMap[chunkKey].genFaces();
+				loadedChunkMap[chunkKey].uploadToGPU();
+				loadedChunkMap[chunkKey].isGenerated = true;
+
 
 				processingChunks.erase(chunkKey); // Remove from processing set
+
 				auto end = std::chrono::high_resolution_clock::now();
 				std::chrono::duration<float> duration = end - start;
 				std::cout << "Chunk generation took: " << duration.count() << " seconds" << std::endl;
 
 			}
-
-			if (!loadedChunkMap[chunkKey].isGenerated) {
-
-				auto start = std::chrono::high_resolution_clock::now();
-
-				loadedChunkMap[chunkKey].Delete();
-				loadedChunkMap[chunkKey].genFaces();
-				loadedChunkMap[chunkKey].uploadToGPU();
-				loadedChunkMap[chunkKey].isGenerated = true;
-
-				auto end = std::chrono::high_resolution_clock::now();
-				std::chrono::duration<float> duration = end - start;
-				std::cout << "Face generation took: " << duration.count() << " seconds" << std::endl;
-			}
-
 
 		}
 
@@ -86,8 +71,8 @@ void World::updateChunks(glm::vec3 camPos)
 		// Unload chunks that are outside the render distance
 		for (auto it = loadedChunkMap.begin(); it != loadedChunkMap.end(); ) {
 			if (bufferedChunkSet.find(it->first) == bufferedChunkSet.end()) {
-				// Outside of active range -> unload it
-				it->second.Delete();  // Make sure this cleans up OpenGL buffers
+
+				it->second.Delete();  
 				it = loadedChunkMap.erase(it);
 			}
 			else {
@@ -122,3 +107,4 @@ void World::Delete() {
 	futureChunkMap.clear();
 	processingChunks.clear();
 }
+

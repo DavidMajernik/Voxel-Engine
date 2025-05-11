@@ -16,10 +16,10 @@ class World  // A class to manage the world and its chunks
 public:
 
 	std::unordered_map<glm::ivec2, std::future<Chunk>> futureChunkMap; 
-	std::queue<std::pair<glm::ivec2, Chunk>> readyChunks;
 	std::unordered_map<glm::ivec2, Chunk> loadedChunkMap;
 	std::unordered_set<glm::ivec2> processingChunks;
 	glm::ivec2 chunkPos;
+
 
 	World();
 	void updateChunks(glm::vec3 camPos);

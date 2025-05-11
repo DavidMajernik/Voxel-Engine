@@ -4,7 +4,7 @@ Texture* Chunk::texture = nullptr; // Initialize the static texture pointer to n
 
 std::array<std::array<std::array<float, 4>, 6>, 256> Chunk::cachedUVs;
 
-std::array<std::array<int, chunkSize>, chunkSize> Chunk::heightMap;
+std::array<std::array<int, (chunkSize + padding)>, (chunkSize + padding)> Chunk::heightMap;
 
 //std::unique_ptr<uint8_t[]> Chunk::caveMap;
 
@@ -13,7 +13,7 @@ Chunk::Chunk() : chunkPos(glm::ivec3(0)), indexCount(0), chunkVAO(0), chunkVerte
 	AOVals = std::make_unique<std::vector<uint8_t>>();
 
 }
-Chunk::Chunk(glm::vec3 pos, std::unordered_map<glm::ivec2, Chunk>* loadedChunkMap) : chunkPos(pos), indexCount(0), chunkVAO(0), chunkVertexVBO(0), chunkUVVBO(0), chunkEBO(0), blocks(), chunkAOBO(0), loadedChunks(loadedChunkMap) {
+Chunk::Chunk(glm::vec3 pos) : chunkPos(pos), indexCount(0), chunkVAO(0), chunkVertexVBO(0), chunkUVVBO(0), chunkEBO(0), blocks(), chunkAOBO(0) {
 	chunkVerts = std::make_unique<std::vector<glm::vec3>>();
 	chunkUVs = std::make_unique<std::vector<glm::vec2>>();
 	chunkIndices = std::make_unique<std::vector<unsigned int>>();
@@ -25,19 +25,13 @@ Chunk::Chunk(glm::vec3 pos, std::unordered_map<glm::ivec2, Chunk>* loadedChunkMa
 
 }
 
-int Chunk::getBlockIndex(const BlockPosition& blockPos) {
-	if (blockPos.x < 0 || blockPos.x >= chunkSize ||
-		blockPos.y < 0 || blockPos.y >= chunkHeight ||
-		blockPos.z < 0 || blockPos.z >= chunkSize) {
-		std::cerr << "Block position out of bounds: (" << blockPos.x << ", " << blockPos.y << ", " << blockPos.z << ")" << std::endl;
-		return -1; 
-	}
-	
-	return blockPos.x + blockPos.y * chunkSize + blockPos.z * chunkSize * chunkHeight;
+inline int getBlockIndex(const BlockPosition& blockPos) {
+	return  blockPos.x + (blockPos.y * (chunkSize + padding)) + (blockPos.z * (chunkSize + padding) * chunkHeight);
 }
 
+
 uint8_t Chunk::ChunkData::getBlock(const BlockPosition& blockPos) const {
-	int index = Chunk::getBlockIndex(blockPos);
+	int index = getBlockIndex(blockPos);
 	if (index >= 0 && index < blocks.size()) {
 		return blocks.at(index);
 	}
@@ -48,7 +42,7 @@ uint8_t Chunk::ChunkData::getBlock(const BlockPosition& blockPos) const {
 }
 
 void Chunk::ChunkData::setBlock(const BlockPosition& blockPos, uint8_t blockType) {
-	int index = Chunk::getBlockIndex(blockPos);
+	int index = getBlockIndex(blockPos);
 	if (index >= 0 && index < blocks.size()) {
 		blocks.at(index) = blockType;
 	}
@@ -57,15 +51,10 @@ void Chunk::ChunkData::setBlock(const BlockPosition& blockPos, uint8_t blockType
 	}
 }
 
-void Chunk::genBlocks(std::array<std::array<int, chunkSize>, chunkSize> &heightMap)
+void Chunk::genBlocks(std::array<std::array<int, (chunkSize + padding)>, (chunkSize + padding)> &heightMap)
 {
-	for (int x = 0; x < chunkSize; x++) {
-		for (int z = 0; z < chunkSize; z++) {
-
-			if (x < 0 || x >= chunkSize || z < 0 || z >= chunkSize) {
-				std::cerr << "Index out of bounds: x=" << x << ", z=" << z << std::endl;
-				continue;
-			}
+	for (int x = 0; x < (chunkSize + padding); x++) {
+		for (int z = 0; z < (chunkSize + padding); z++) {
 
 			int columnHeight = heightMap[x][z];
 
@@ -92,7 +81,7 @@ void Chunk::genFaces() {
 			for (int y = 0; y < chunkHeight; y++) {
 
 				
-				BlockPosition current = BlockPosition(x, y, z);
+				BlockPosition current = BlockPosition(x+1, y, z+1);
 				
 				if (blocks.getBlock(current) == BlockType::EMPTY) continue;
 
@@ -100,14 +89,14 @@ void Chunk::genFaces() {
 
 				//Front faces
 				//qualifications for front face: Block to the front is empty
-				if (getBlockGlobal(BlockPosition(x, y, z + 1)) == BlockType::EMPTY) {
+				if (blocks.getBlock(BlockPosition(current.x, y, current.z + 1)) == BlockType::EMPTY) {
 					integrateFace(current, Faces::FRONT_F);
 					numFaces++;
 				}
 
 				//Back faces
 				//qualifications for back face: Block to the back is empty
-				if (getBlockGlobal(BlockPosition(x, y, z - 1)) == BlockType::EMPTY) {
+				if (blocks.getBlock(BlockPosition(current.x, y, current.z - 1)) == BlockType::EMPTY) {
 					integrateFace(current, Faces::BACK_F);
 					numFaces++;
 
@@ -115,14 +104,14 @@ void Chunk::genFaces() {
 					
 				//Left faces
 				//qualifications for left face: Block to the left is empty
-				if (getBlockGlobal(BlockPosition(x - 1, y, z)) == BlockType::EMPTY) {
+				if (blocks.getBlock(BlockPosition(current.x - 1, y, current.z)) == BlockType::EMPTY) {
 					integrateFace(current, Faces::LEFT_F);
 					numFaces++;
 
 				}
 				//Right faces
 				//qualifications for right face: Block to the right is empty
-				if (getBlockGlobal(BlockPosition(x + 1, y, z)) == BlockType::EMPTY) {
+				if (blocks.getBlock(BlockPosition(current.x + 1, y, current.z)) == BlockType::EMPTY) {
 					integrateFace(current, Faces::RIGHT_F);
 					numFaces++;
 
@@ -130,7 +119,7 @@ void Chunk::genFaces() {
 				//Top faces
 				//qualifications for top face: Block to the top is empty, is farthest top in chunk. 
 				if (y < chunkHeight - 1) {
-					if (blocks.getBlock(BlockPosition(x, y + 1, z)) == BlockType::EMPTY) {
+					if (blocks.getBlock(BlockPosition(current.x, y + 1, current.z)) == BlockType::EMPTY) {
 						integrateFace(current, Faces::TOP_F);
 						numFaces++;
 
@@ -145,7 +134,7 @@ void Chunk::genFaces() {
 				//Bottom faces
 				//qualifications for bottom face: Block to the bottom is empty
 				if (y > 0) {
-					if (blocks.getBlock(BlockPosition(x, y - 1, z)) == BlockType::EMPTY) {
+					if (blocks.getBlock(BlockPosition(current.x, y - 1, current.z)) == BlockType::EMPTY) {
 						integrateFace(current, Faces::BOTTOM_F);
 						numFaces++;
 
@@ -173,6 +162,7 @@ void Chunk::integrateFace(BlockPosition blockPos, Faces face) {
 			static_cast<float>(vertex.z + blockPos.z + chunkPos.z))); 
 
 	}
+
 
 	const auto& uv = cachedUVs[static_cast<int>(type)][face];
 
@@ -370,9 +360,9 @@ void Chunk::generateAOVals(BlockPosition blockPos, Faces face) {
 		}
 
 
-		hasSide1 = getBlockGlobal(side1Pos) != BlockType::EMPTY; 
-		hasSide2 = getBlockGlobal(side2Pos) != BlockType::EMPTY; 
-		hasCorner = getBlockGlobal(cornerPos) != BlockType::EMPTY; 
+		hasSide1 = blocks.getBlock(side1Pos) != BlockType::EMPTY;
+		hasSide2 = blocks.getBlock(side2Pos) != BlockType::EMPTY;
+		hasCorner = blocks.getBlock(cornerPos) != BlockType::EMPTY;
 
 
 		AOVals->push_back(vertexAO(hasSide1, hasSide2, hasCorner));
@@ -382,41 +372,4 @@ void Chunk::generateAOVals(BlockPosition blockPos, Faces face) {
 uint8_t Chunk::vertexAO(bool s1, bool s2, bool corner) {
 	if (s1 && s2) return 0;
 	return 3 - (s1 + s2 + corner);
-}
-
-uint8_t Chunk::getBlockGlobal(const BlockPosition& pos) const {
-	// If the position is inside this chunk, return it directly
-	if (pos.x >= 0 && pos.x < chunkSize &&
-		pos.y >= 0 && pos.y < chunkHeight &&
-		pos.z >= 0 && pos.z < chunkSize) {
-		return blocks.getBlock(pos);
-	}
-
-	// Calculate world-space block position
-	glm::ivec3 worldPos = chunkPos + glm::vec3(pos.x, pos.y, pos.z);
-
-	// Determine which chunk this position belongs to
-	glm::ivec2 neighborChunkXZ(
-		std::floor(worldPos.x / static_cast<float>(chunkSize)),
-		std::floor(worldPos.z / static_cast<float>(chunkSize))
-	);
-
-	// Calculate local block position within the neighboring chunk
-	BlockPosition localPos(
-		(worldPos.x % chunkSize + chunkSize) % chunkSize,
-		worldPos.y,
-		(worldPos.z % chunkSize + chunkSize) % chunkSize
-	);
-
-	// Bounds check for Y (vertical)
-	if (localPos.y < 0 || localPos.y >= chunkHeight) return BlockType::EMPTY;
-
-
-	// Look up neighboring chunk
-	if (loadedChunks && loadedChunks->count(neighborChunkXZ)) {
-		const Chunk& neighbor = loadedChunks->at(neighborChunkXZ);
-		return neighbor.blocks.getBlock(localPos);
-	}
-
-	return BlockType::EMPTY;
 }

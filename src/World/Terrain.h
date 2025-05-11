@@ -22,14 +22,14 @@ public:
        //caveNoiseGenerator.SetFrequency(0.03);  
    }  
 
-   static std::array<std::array<int, chunkSize>, chunkSize> genHeightMap(float chunkPosX, float chunkPosZ) {  
+   static std::array<std::array<int, (chunkSize + padding)>, (chunkSize + padding)> genHeightMap(float chunkPosX, float chunkPosZ) {
 
-       std::array<std::array<int, chunkSize>, chunkSize> heightMap = std::array<std::array<int, chunkSize>, chunkSize>();  
+       std::array<std::array<int, (chunkSize + padding)>, (chunkSize + padding)> heightMap = std::array<std::array<int, (chunkSize + padding)>, (chunkSize + padding)>();
 
        float noiseValue;  
 
-       for (int x = 0; x < chunkSize; x++) {  
-           for (int z = 0; z < chunkSize; z++) {  
+       for (int x = 0; x < (chunkSize + padding); x++) {
+           for (int z = 0; z < (chunkSize + padding); z++) {
 
                noiseValue = noiseGenerator.GetNoise(static_cast<float>(x + chunkPosX), static_cast<float>(z + chunkPosZ));  
                noiseValue = (noiseValue + 1.0f) * 0.5f;  

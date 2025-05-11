@@ -27,21 +27,21 @@ class Chunk {
 public:
 
 	Chunk();
-	Chunk(glm::vec3 pos, std::unordered_map<glm::ivec2, Chunk>* loadedChunkMap);
+	Chunk(glm::vec3 pos);
 
 	glm::vec3 chunkPos;
 	bool isGenerated = false;
 
 	static Texture* texture;
 	static std::array<std::array<std::array<float, 4>, 6>, 256> cachedUVs;
-	static std::array<std::array<int, chunkSize>, chunkSize> heightMap;
+	static std::array<std::array<int, (chunkSize + padding)>, (chunkSize + padding)> heightMap;
 	static std::unique_ptr<uint8_t[]> caveMap;
 
 	static void initializeTexture();
 	static void cleanupTexture();
 	static void cacheUVsFromAtlas();
 
-	void genBlocks(std::array<std::array<int, chunkSize>, chunkSize> &heightMap);
+	void genBlocks(std::array<std::array<int, (chunkSize + padding)>, (chunkSize + padding)> &heightMap);
 	void genFaces();
 	void integrateFace(BlockPosition blockPos, Faces face);
 	void addIndices(int amtFaces);
@@ -51,12 +51,10 @@ public:
 
 	void generateAOVals(BlockPosition blockPos, Faces face);
 	uint8_t vertexAO(bool s1, bool s2, bool corner);
-	uint8_t getBlockGlobal(const BlockPosition& pos) const;
 
 private:
 	float uMin, vMin, uMax, vMax;
 	ChunkData blocks; // The chunk's block data
-	static int getBlockIndex(const BlockPosition& blockPos);
 	void getUVFromAtlas(int index, int atlasSize, float& uMin, float& vMin, float& uMax, float& vMax);
 
 	unsigned int chunkVAO; // Vertex Array Object for the chunk
