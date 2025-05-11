@@ -30,12 +30,11 @@ public:
 	Chunk(glm::vec3 pos);
 
 	glm::vec3 chunkPos;
-	bool isGenerated = false;
 
 	static Texture* texture;
 	static std::array<std::array<std::array<float, 4>, 6>, 256> cachedUVs;
-	static std::array<std::array<int, (chunkSize + padding)>, (chunkSize + padding)> heightMap;
-	static std::unique_ptr<uint8_t[]> caveMap;
+	std::array<std::array<int, (chunkSize + padding)>, (chunkSize + padding)> heightMap;
+	std::unique_ptr<uint8_t[]> caveMap;
 
 	static void initializeTexture();
 	static void cleanupTexture();

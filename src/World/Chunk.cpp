@@ -4,21 +4,18 @@ Texture* Chunk::texture = nullptr; // Initialize the static texture pointer to n
 
 std::array<std::array<std::array<float, 4>, 6>, 256> Chunk::cachedUVs;
 
-std::array<std::array<int, (chunkSize + padding)>, (chunkSize + padding)> Chunk::heightMap;
-
-//std::unique_ptr<uint8_t[]> Chunk::caveMap;
-
-Chunk::Chunk() : chunkPos(glm::ivec3(0)), indexCount(0), chunkVAO(0), chunkVertexVBO(0), chunkUVVBO(0), chunkEBO(0), chunkAOBO(0) {
+Chunk::Chunk() : chunkPos(glm::ivec3(0)), indexCount(0), chunkVAO(0), chunkVertexVBO(0), chunkUVVBO(0), chunkEBO(0), chunkAOBO(0), heightMap() {
 	
 	AOVals = std::make_unique<std::vector<uint8_t>>();
 
 }
-Chunk::Chunk(glm::vec3 pos) : chunkPos(pos), indexCount(0), chunkVAO(0), chunkVertexVBO(0), chunkUVVBO(0), chunkEBO(0), blocks(), chunkAOBO(0) {
+Chunk::Chunk(glm::vec3 pos) : chunkPos(pos), indexCount(0), chunkVAO(0), chunkVertexVBO(0), chunkUVVBO(0), chunkEBO(0), blocks(), chunkAOBO(0), heightMap() {
 	chunkVerts = std::make_unique<std::vector<glm::vec3>>();
 	chunkUVs = std::make_unique<std::vector<glm::vec2>>();
 	chunkIndices = std::make_unique<std::vector<unsigned int>>();
 	AOVals = std::make_unique<std::vector<uint8_t>>();
-	heightMap = Terrain::genHeightMap(chunkPos.x, chunkPos.z); 
+	Terrain terrain = Terrain(1337, 0.008f, 6, 2.0f, 0.25f);
+	heightMap = terrain.genHeightMap(chunkPos.x, chunkPos.z); 
 	//caveMap = Terrain::genCaves(heightMap, chunkPos.x, chunkPos.z);
 	genBlocks(heightMap); 
 
