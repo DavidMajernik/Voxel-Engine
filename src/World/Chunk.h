@@ -34,7 +34,6 @@ public:
 	static Texture* texture;
 	static std::array<std::array<std::array<float, 4>, 6>, 256> cachedUVs;
 	std::array<std::array<int, (chunkSize + padding)>, (chunkSize + padding)> heightMap;
-	std::unique_ptr<uint8_t[]> caveMap;
 
 	static void initializeTexture();
 	static void cleanupTexture();

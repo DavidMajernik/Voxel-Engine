@@ -9,6 +9,7 @@ Terrain::Terrain(int seed, float freq, int octaves, float lucunarity, float gain
     noiseGenerator.SetFractalOctaves(octaves);
     noiseGenerator.SetFractalLacunarity(lucunarity);
     noiseGenerator.SetFractalGain(gain);
+
 }
 
 std::array<std::array<int, (chunkSize + padding)>, (chunkSize + padding)> Terrain::genHeightMap(float chunkPosX, float chunkPosZ) {

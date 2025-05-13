@@ -14,9 +14,10 @@ Chunk::Chunk(glm::vec3 pos) : chunkPos(pos), indexCount(0), chunkVAO(0), chunkVe
 	chunkUVs = std::make_unique<std::vector<glm::vec2>>();
 	chunkIndices = std::make_unique<std::vector<unsigned int>>();
 	AOVals = std::make_unique<std::vector<uint8_t>>();
+
 	Terrain terrain = Terrain(1337, 0.008f, 6, 2.0f, 0.25f);
 	heightMap = terrain.genHeightMap(chunkPos.x, chunkPos.z); 
-	//caveMap = Terrain::genCaves(heightMap, chunkPos.x, chunkPos.z);
+
 	genBlocks(heightMap); 
 
 
@@ -57,6 +58,7 @@ void Chunk::genBlocks(std::array<std::array<int, (chunkSize + padding)>, (chunkS
 
 			for (int y = 0; y < chunkHeight; y++) {
 
+				
 				if (y < columnHeight) {
 					blocks.setBlock(BlockPosition(x, y, z), (y == columnHeight - 1) ? BlockType::GRASS : BlockType::DIRT);
 					//blocks.setBlock(BlockPosition(x, y, z), caveMap[x + y * chunkSize + z * chunkSize * chunkHeight]);
@@ -64,6 +66,7 @@ void Chunk::genBlocks(std::array<std::array<int, (chunkSize + padding)>, (chunkS
 				else {
 					blocks.setBlock(BlockPosition(x, y, z), BlockType::EMPTY);
 				}
+				
 			}
 		}
 	}
