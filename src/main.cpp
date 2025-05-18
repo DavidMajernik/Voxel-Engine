@@ -76,7 +76,6 @@ int main()
 	glad_glFrontFace(GL_CW); // Set the front face to clockwise
 	glEnable(GL_CULL_FACE); // Enable face culling
 	glCullFace(GL_BACK); // Cull back faces (the default is GL_BACK, but it's good to be explicit)
-   
 
     // build and compile our shader zprogram
     // ------------------------------------
@@ -110,6 +109,13 @@ int main()
 
         // activate shader
         ourShader.use();
+
+        //set fog stuff
+        ourShader.setVec4("FogColor", glm::vec4(0.6f, 0.9f, 1.0f, 1.0f));
+        ourShader.setFloat("FogMaxDist", (renderDistance) * 32);
+        ourShader.setFloat("FogMinDist", (renderDistance-1) * 32);
+        ourShader.setVec3("CameraPos", camera.Position);
+
 
         // pass projection matrix to shader (note that in this case it could change every frame)
         glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 10000.0f);

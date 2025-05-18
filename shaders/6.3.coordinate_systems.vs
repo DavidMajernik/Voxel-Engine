@@ -5,6 +5,7 @@ layout (location = 2) in uint AO;
 
 out vec2 TexCoord;
 out float vAO;
+out vec3 FragPos;
 
 uniform mat4 model;
 uniform mat4 view;
@@ -14,5 +15,6 @@ void main()
 {
     vAO = AO/3.0;
     gl_Position = projection * view * model * vec4(aPos, 1.0f);
+    FragPos = vec3(model * vec4(aPos, 1.0f));
     TexCoord = vec2(aTexCoord.x, 1.0 - aTexCoord.y);
 }
