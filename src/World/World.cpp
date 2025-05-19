@@ -29,6 +29,7 @@ void World::updateChunks(glm::vec3 camPos)
 				futureChunkMap.find(chunkKey) == futureChunkMap.end())
 			{
 
+
 				// Use the thread pool to load the chunk asynchronously
 				futureChunkMap[chunkKey] = threadPool.enqueue([this, chunkKey]() {
 					Chunk chunk(glm::vec3(chunkKey.x * chunkSize, 0.0f, chunkKey.y * chunkSize));
@@ -101,5 +102,6 @@ void World::Delete() {
 	loadedChunkMap.clear(); // Clear the map to remove all references
 	Chunk::cleanupTexture(); // Clean up the texture if needed
 	futureChunkMap.clear();
+	threadPool.~ThreadPool();
 }
 

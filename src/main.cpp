@@ -112,8 +112,8 @@ int main()
 
         //set fog stuff
         ourShader.setVec4("FogColor", glm::vec4(0.6f, 0.9f, 1.0f, 1.0f));
-        ourShader.setFloat("FogMaxDist", (renderDistance) * 32);
-        ourShader.setFloat("FogMinDist", (renderDistance-1) * 32);
+        ourShader.setFloat("FogMaxDist", (renderDistance-0.5) * 32);
+        ourShader.setFloat("FogMinDist", (renderDistance-3) * 32);
         ourShader.setVec3("CameraPos", camera.Position);
 
 

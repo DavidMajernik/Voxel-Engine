@@ -13,13 +13,14 @@ uniform vec3 CameraPos;
 
 void main()
 {
-
    FragColor = texture(texture1, TexCoord);
-   FragColor *= mix(0.7, 1.0, vAO); 
+   FragColor.rgb *= mix(0.7, 1.0, vAO); 
    FragColor.a = 1.0;
 
    float distance = length(FragPos - CameraPos);
-   float fogFactor = 1- clamp((distance - FogMinDist) / (FogMaxDist - FogMinDist), 0.0, 1.0);
 
-   FragColor = vec4(mix(FogColor.rgb, FragColor.rgb, fogFactor), 1.0);
+   //Linear fog
+   float fogFactor = clamp((distance - FogMinDist) / (FogMaxDist - FogMinDist), 0.0, 1.0);
+
+   FragColor = vec4(mix(FragColor.rgb, FogColor.rgb, fogFactor), 1.0);
 }
