@@ -8,6 +8,7 @@
 #include <future>
 #include <queue>
 #include <unordered_set>
+#include "ThreadPool.h"
 
 
 class World  // A class to manage the world and its chunks
@@ -26,5 +27,5 @@ public:
 	void Delete();
 
 private:
-
+	ThreadPool threadPool;
 };

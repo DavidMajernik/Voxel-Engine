@@ -1,12 +1,10 @@
 #include <iostream>
 #include "World.h"
 
-World::World() {
-	// Constructor can be empty or initialize any necessary variables if needed
+World::World() : threadPool() {
 	chunkPos = glm::ivec2(0.0f, 0.0f); // Initialize chunk chunkPos to (0, 0)
 	Chunk::initializeTexture();
 	Chunk::cacheUVsFromAtlas();
-
 }
 
 void World::updateChunks(glm::vec3 camPos)
@@ -31,12 +29,12 @@ void World::updateChunks(glm::vec3 camPos)
 				futureChunkMap.find(chunkKey) == futureChunkMap.end())
 			{
 
-				futureChunkMap[chunkKey] = std::async(std::launch::async, [this, chunkKey]() {
-					Chunk chunk(glm::vec3(chunkKey.x * chunkSize, 0.0f, chunkKey.y * chunkSize)); 
-					chunk.genFaces();
-					return chunk;
+				// Use the thread pool to load the chunk asynchronously
+				futureChunkMap[chunkKey] = threadPool.enqueue([this, chunkKey]() {
+					Chunk chunk(glm::vec3(chunkKey.x * chunkSize, 0.0f, chunkKey.y * chunkSize));
+					chunk.genFaces(); 
+					return chunk; 
 					});
-
 
 			}
 

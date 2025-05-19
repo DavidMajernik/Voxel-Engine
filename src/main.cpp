@@ -85,7 +85,7 @@ int main()
     //make chunk
     //Chunk chunk = Chunk(glm::vec3(0.0f, 0.0f, 0.0f)); // Create a chunk at the origin
     //chunk.buildChunk();
-    World world = World();
+    std::unique_ptr<World> world = std::make_unique<World>();
 
     // render loop
     // -----------
@@ -129,8 +129,8 @@ int main()
         ourShader.setMat4("model", model);
 
         //chunk.render(ourShader); // Render the chunk using the shader
-        world.updateChunks(camera.Position);
-		world.renderChunks(ourShader); // Render all chunks in the world
+        world->updateChunks(camera.Position);
+		world->renderChunks(ourShader); // Render all chunks in the world
 
         // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
         // -------------------------------------------------------------------------------
@@ -140,7 +140,7 @@ int main()
     //clean up resources
 
     //chunk.Delete();
-	world.Delete(); // Clean up all chunks in the world
+	world->Delete(); // Clean up all chunks in the world
 
     // glfw: terminate, clearing all previously allocated GLFW resources.
     // ------------------------------------------------------------------
