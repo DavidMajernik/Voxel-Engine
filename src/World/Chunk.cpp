@@ -60,13 +60,19 @@ void Chunk::genBlocks(std::array<std::array<int, (chunkSize + padding)>, (chunkS
 
 				
 				if (y < columnHeight) {
-					blocks.setBlock(BlockPosition(x, y, z), (y == columnHeight - 1) ? BlockType::GRASS : BlockType::DIRT);
-					//blocks.setBlock(BlockPosition(x, y, z), caveMap[x + y * chunkSize + z * chunkSize * chunkHeight]);
+					if ((y == columnHeight - 1)) {
+						blocks.setBlock(BlockPosition(x, y, z), BlockType::GRASS);
+					}
+					else if (y == columnHeight - 2 || y == columnHeight - 3) {
+						blocks.setBlock(BlockPosition(x, y, z), BlockType::DIRT);
+					}
+					else {
+						blocks.setBlock(BlockPosition(x, y, z), BlockType::STONE);
+					}
 				}
 				else {
 					blocks.setBlock(BlockPosition(x, y, z), BlockType::EMPTY);
 				}
-				
 			}
 		}
 	}
