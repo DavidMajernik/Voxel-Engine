@@ -91,6 +91,8 @@
     <None Include="shaders\6.3.coordinate_systems.vs">
       <Filter>Source Files</Filter>
     </None>
+    <None Include="shaders\outlineShader.fs" />
+    <None Include="shaders\outlineShader.vs" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="assets\awesomeface.png">

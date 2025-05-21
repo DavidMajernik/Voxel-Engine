@@ -88,6 +88,7 @@ int main()
     // build and compile our shader zprogram
     // ------------------------------------
     Shader ourShader("shaders/6.3.coordinate_systems.vs", "shaders/6.3.coordinate_systems.fs");
+	Shader outlineShader("shaders/outlineShader.vs", "shaders/outlineShader.fs");
 
     world = std::make_unique<World>();
 
@@ -142,11 +143,17 @@ int main()
 		//render the hit block if it exists
         if (hitBlockPos != glm::vec3(-1)) { 
 
-            ourShader.use();
+            outlineShader.use();
+            outlineShader.setMat4("projection", projection);
+            outlineShader.setMat4("view", view);
+            outlineShader.setMat4("model", model);
+
+            outlineShader.setVec4("OutlineColor", glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
             glm::mat4 outlineModel = glm::translate(glm::mat4(1.0f), hitBlockPos);
             outlineModel = glm::scale(outlineModel, glm::vec3(1.01f)); 
-            ourShader.setMat4("model", outlineModel);
+            outlineShader.setMat4("model", outlineModel);
 
+            glLineWidth(5.0f);
             glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); // Wireframe mode
             glDisable(GL_CULL_FACE); 
             renderUnitCube(); 
