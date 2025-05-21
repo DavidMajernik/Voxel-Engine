@@ -16,18 +16,73 @@ void World::reloadChunk(glm::ivec2 chunkPos)
 
 uint8_t World::getBlockGlobal(glm::vec3 pos)
 {
-	glm::ivec2 chunkPos = glm::ivec2(static_cast<int>(pos.x / chunkSize), static_cast<int>(pos.z / chunkSize));
-	glm::vec3 localBlockPos = glm::vec3(static_cast<int>(pos.x) % chunkSize, static_cast<int>(pos.y), static_cast<int>(pos.z) % chunkSize);
+	int paddingOffset = 1;
+	int chunkX = static_cast<int>(std::floor((pos.x - paddingOffset) / chunkSize));
+	int chunkZ = static_cast<int>(std::floor((pos.z - paddingOffset) / chunkSize));
+	glm::ivec2 chunkPos(chunkX, chunkZ);
 
-	return loadedChunkMap[chunkPos].getBlock(localBlockPos);	
+	int localX = static_cast<int>(pos.x) - chunkX * chunkSize + paddingOffset;
+	int localY = static_cast<int>(pos.y);
+	int localZ = static_cast<int>(pos.z) - chunkZ * chunkSize + paddingOffset;
+	glm::vec3 localBlockPos(localX, localY, localZ);
+
+	return loadedChunkMap[chunkPos].getBlock(localBlockPos);
 }
 
 void World::setBlockGlobal(glm::vec3 pos, uint8_t blockType)
 {
-	glm::ivec2 chunkPos = glm::ivec2(static_cast<int>(pos.x / chunkSize), static_cast<int>(pos.z / chunkSize));
-	glm::vec3 localBlockPos = glm::vec3(static_cast<int>(pos.x) % chunkSize, static_cast<int>(pos.y), static_cast<int>(pos.z) % chunkSize);
+	int paddingOffset = 1;
+	int baseChunkX = static_cast<int>(std::floor((pos.x - paddingOffset) / chunkSize));
+	int baseChunkZ = static_cast<int>(std::floor((pos.z - paddingOffset) / chunkSize));
 
-	loadedChunkMap[chunkPos].setBlock(localBlockPos, blockType);
+	// Track which chunks need to be reloaded
+	std::unordered_set<glm::ivec2> chunksToReload;
+
+	// Check all 4 possible overlapping chunks
+	for (int dx = 0; dx <= 1; ++dx) {
+		for (int dz = 0; dz <= 1; ++dz) {
+			int chunkX = baseChunkX + dx;
+			int chunkZ = baseChunkZ + dz;
+			glm::ivec2 chunkPos(chunkX, chunkZ);
+
+			int chunkOriginX = chunkX * chunkSize;
+			int chunkOriginZ = chunkZ * chunkSize;
+
+			int minX = chunkOriginX - paddingOffset;
+			int maxX = chunkOriginX + chunkSize + paddingOffset - 1;
+			int minZ = chunkOriginZ - paddingOffset;
+			int maxZ = chunkOriginZ + chunkSize + paddingOffset - 1;
+
+			if (pos.x >= minX && pos.x <= maxX && pos.z >= minZ && pos.z <= maxZ) {
+				int localX = static_cast<int>(pos.x) - chunkOriginX + paddingOffset;
+				int localY = static_cast<int>(pos.y);
+				int localZ = static_cast<int>(pos.z) - chunkOriginZ + paddingOffset;
+				glm::vec3 localBlockPos(localX, localY, localZ);
+
+				if (loadedChunkMap.count(chunkPos)) {
+					loadedChunkMap[chunkPos].setBlock(localBlockPos, blockType);
+					chunksToReload.insert(chunkPos);
+
+					// If the block is on the main area border, reload the neighbor too
+					if (localX == 1 || localX == chunkSize ||
+						localZ == 1 || localZ == chunkSize) {
+						// Check all 4 directions
+						if (localX == 1) chunksToReload.insert(glm::ivec2(chunkX - 1, chunkZ));
+						if (localX == chunkSize) chunksToReload.insert(glm::ivec2(chunkX + 1, chunkZ));
+						if (localZ == 1) chunksToReload.insert(glm::ivec2(chunkX, chunkZ - 1));
+						if (localZ == chunkSize) chunksToReload.insert(glm::ivec2(chunkX, chunkZ + 1));
+					}
+				}
+			}
+		}
+	}
+
+	// Reload all affected chunks
+	for (const auto& chunkPos : chunksToReload) {
+		if (loadedChunkMap.count(chunkPos)) {
+			reloadChunk(chunkPos);
+		}
+	}
 }
 
 void World::updateChunks(glm::vec3 camPos)
