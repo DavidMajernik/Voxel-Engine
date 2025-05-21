@@ -36,7 +36,6 @@ void PlayerController::RayCast(glm::vec3 camPos, glm::vec3 direction, std::uniqu
     }
 
     float traveled = 0.0f;
-    hitBlockPos = glm::vec3(-1); // Sentinel for "no hit"
 
     while (traveled < maxDistance) {
         uint8_t block = world->getBlockGlobal(glm::vec3(blockPos));
@@ -56,7 +55,6 @@ void PlayerController::RayCast(glm::vec3 camPos, glm::vec3 direction, std::uniqu
             break;
         }
 
-        // Only update prevBlockPos after checking for a hit
         prevBlockPos = blockPos;
 
         // Advance to next voxel boundary

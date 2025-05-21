@@ -83,16 +83,12 @@ int main()
     glEnable(GL_DEPTH_TEST);
 	glad_glFrontFace(GL_CW); // Set the front face to clockwise
 	glEnable(GL_CULL_FACE); // Enable face culling
-	glCullFace(GL_BACK); // Cull back faces (the default is GL_BACK, but it's good to be explicit)
+	glCullFace(GL_BACK); 
 
     // build and compile our shader zprogram
     // ------------------------------------
     Shader ourShader("shaders/6.3.coordinate_systems.vs", "shaders/6.3.coordinate_systems.fs");
 
-
-    //make chunk
-    //Chunk chunk = Chunk(glm::vec3(0.0f, 0.0f, 0.0f)); // Create a chunk at the origin
-    //chunk.buildChunk();
     world = std::make_unique<World>();
 
     // render loop
@@ -125,7 +121,7 @@ int main()
         ourShader.setVec3("CameraPos", camera.Position);
 
 
-        // pass projection matrix to shader (note that in this case it could change every frame)
+        // pass projection matrix to shader 
         glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 10000.0f);
         ourShader.setMat4("projection", projection);
 
@@ -144,19 +140,16 @@ int main()
         buttonPress = false;
 
 		//render the hit block if it exists
-        if (hitBlockPos != glm::vec3(-1)) { // Use a sentinel value for "no hit"
-            // Set up a simple color shader for the outline, or reuse your existing shader
+        if (hitBlockPos != glm::vec3(-1)) { 
+
             ourShader.use();
             glm::mat4 outlineModel = glm::translate(glm::mat4(1.0f), hitBlockPos);
-            outlineModel = glm::scale(outlineModel, glm::vec3(1.01f)); // Slightly larger to avoid z-fighting
+            outlineModel = glm::scale(outlineModel, glm::vec3(1.01f)); 
             ourShader.setMat4("model", outlineModel);
 
-            // Set a uniform for outline color if your shader supports it
-            // ourShader.setVec4("OutlineColor", glm::vec4(1, 1, 0, 1)); // yellow
-
             glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); // Wireframe mode
-            glDisable(GL_CULL_FACE); // So all edges are visible
-            renderUnitCube(); // You need a function that draws a cube from (0,0,0) to (1,1,1)
+            glDisable(GL_CULL_FACE); 
+            renderUnitCube(); 
 
             glEnable(GL_CULL_FACE);
             glPolygonMode(GL_FRONT_AND_BACK, GL_FILL); // Restore fill mode
@@ -169,7 +162,6 @@ int main()
     }
     //clean up resources
 
-    //chunk.Delete();
 	world->Delete(); // Clean up all chunks in the world
 
     // glfw: terminate, clearing all previously allocated GLFW resources.
