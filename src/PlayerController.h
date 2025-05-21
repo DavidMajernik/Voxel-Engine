@@ -13,7 +13,7 @@ public:
 
 	~PlayerController();
 
-	void RayCast(glm::vec3 camPos, glm::vec3 direction, std::unique_ptr<World>& world, bool place);
+	void RayCast(glm::vec3 camPos, glm::vec3 direction, std::unique_ptr<World>& world, bool place, glm::vec3& hitBlockPos, bool buttonPress);
 
 private: 
 

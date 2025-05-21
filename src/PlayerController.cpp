@@ -4,42 +4,87 @@ PlayerController::PlayerController() {}
 
 PlayerController::~PlayerController() {}
 
-void PlayerController::RayCast(glm::vec3 camPos, glm::vec3 direction, std::unique_ptr<World>& world, bool place) {
-    // Pseudocode:
-    // 1. Step along the ray in small increments (e.g., 0.1 units).
-    // 2. For each step, check if the block at the current position is not air (block != 0).
-    // 3. If place is true, set the block just before the hit to dirt (blockType = 1).
-    //    If place is false, set the hit block to air (blockType = 0).
-    // 4. Stop after the first hit or after a max distance.
-
+void PlayerController::RayCast(glm::vec3 camPos, glm::vec3 direction, std::unique_ptr<World>& world, bool place, glm::vec3& hitBlockPos, bool buttonPress) {
     const float maxDistance = 6.0f;
-    const float step = 0.01f;
-    glm::vec3 pos = camPos;
-    glm::vec3 prevPos = pos;
     direction = glm::normalize(direction);
 
-    for (float t = 0.0f; t < maxDistance; t += step) {
-        glm::ivec3 blockPos = glm::ivec3(glm::floor(pos));
+    glm::ivec3 blockPos = glm::ivec3(glm::floor(camPos));
+    glm::ivec3 prevBlockPos = blockPos;
+    glm::vec3 rayPos = camPos;
+
+    // Calculate step and initial tMax/tDelta for each axis
+    glm::ivec3 step;
+    glm::vec3 tMax;
+    glm::vec3 tDelta;
+
+    for (int i = 0; i < 3; ++i) {
+        if (direction[i] > 0) {
+            step[i] = 1;
+            tMax[i] = ((blockPos[i] + 1.0f) - rayPos[i]) / direction[i];
+            tDelta[i] = 1.0f / direction[i];
+        }
+        else if (direction[i] < 0) {
+            step[i] = -1;
+            tMax[i] = (rayPos[i] - blockPos[i]) / -direction[i];
+            tDelta[i] = 1.0f / -direction[i];
+        }
+        else {
+            step[i] = 0;
+            tMax[i] = std::numeric_limits<float>::max();
+            tDelta[i] = std::numeric_limits<float>::max();
+        }
+    }
+
+    float traveled = 0.0f;
+    hitBlockPos = glm::vec3(-1); // Sentinel for "no hit"
+
+    while (traveled < maxDistance) {
         uint8_t block = world->getBlockGlobal(glm::vec3(blockPos));
         if (block != 0) {
-            if (place) {
-                // Place block at previous position (if not inside the block)
-                glm::ivec3 placePos = glm::ivec3(glm::floor(prevPos));
-                if (world->getBlockGlobal(glm::vec3(placePos)) == 0) {
-                    world->setBlockGlobal(glm::vec3(placePos), 1); // 1 = dirt
-                    glm::ivec2 chunkPos = glm::ivec2(static_cast<int>(placePos.x / chunkSize), static_cast<int>(placePos.z / chunkSize));
+            hitBlockPos = glm::vec3(blockPos.x + 1, blockPos.y, blockPos.z + 1);
+            if (buttonPress) {
+                if (place) {
+                    // Place block at previous position (the last empty block)
+                    if (world->getBlockGlobal(glm::vec3(prevBlockPos)) == 0) {
+                        world->setBlockGlobal(glm::vec3(prevBlockPos), 1);
+                    }
                 }
-            } else {
-                // Remove the block at the hit position
-                world->setBlockGlobal(glm::vec3(blockPos), 0); // 0 = air
-                glm::ivec2 chunkPos = glm::ivec2(static_cast<int>(blockPos.x / chunkSize), static_cast<int>(blockPos.z / chunkSize));
+                else {
+                    world->setBlockGlobal(glm::vec3(blockPos), 0);
+                }
             }
             break;
         }
-        prevPos = pos;
-        pos += direction * step;
+
+        // Only update prevBlockPos after checking for a hit
+        prevBlockPos = blockPos;
+
+        // Advance to next voxel boundary
+        if (tMax.x < tMax.y) {
+            if (tMax.x < tMax.z) {
+                blockPos.x += step.x;
+                traveled = tMax.x;
+                tMax.x += tDelta.x;
+            }
+            else {
+                blockPos.z += step.z;
+                traveled = tMax.z;
+                tMax.z += tDelta.z;
+            }
+        }
+        else {
+            if (tMax.y < tMax.z) {
+                blockPos.y += step.y;
+                traveled = tMax.y;
+                tMax.y += tDelta.y;
+            }
+            else {
+                blockPos.z += step.z;
+                traveled = tMax.z;
+                tMax.z += tDelta.z;
+            }
+        }
     }
-    
 }
 
 

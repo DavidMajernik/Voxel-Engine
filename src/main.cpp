@@ -20,6 +20,7 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 void processInput(GLFWwindow* window);
+void renderUnitCube();
 
 
 // settings
@@ -27,7 +28,7 @@ const unsigned int SCR_WIDTH = 2400;
 const unsigned int SCR_HEIGHT = 1800;
 
 //camera
-Camera camera(glm::vec3(0.0f, 300.0f, 0.0f));
+Camera camera(glm::vec3(0.0f, 250.0f, 0.0f));
 float lastX = SCR_WIDTH / 2.0f;
 float lastY = SCR_HEIGHT / 2.0f;
 bool firstMouse = true; // if the mouse is moved, this will be set to false, so that the camera can be moved with the mouse
@@ -39,6 +40,9 @@ float lastFrame = 0.0f; // time of last frame
 //break and place
 PlayerController playerController;
 std::unique_ptr<World> world;
+glm::vec3 hitBlockPos = glm::vec3(-1);
+bool buttonPress = false;
+bool place = false;
 
 int main()
 {
@@ -136,6 +140,28 @@ int main()
         world->updateChunks(camera.Position);
 		world->renderChunks(ourShader); // Render all chunks in the world
 
+        playerController.RayCast(camera.Position, camera.Front, world, place, hitBlockPos, buttonPress);
+        buttonPress = false;
+
+		//render the hit block if it exists
+        if (hitBlockPos != glm::vec3(-1)) { // Use a sentinel value for "no hit"
+            // Set up a simple color shader for the outline, or reuse your existing shader
+            ourShader.use();
+            glm::mat4 outlineModel = glm::translate(glm::mat4(1.0f), hitBlockPos);
+            outlineModel = glm::scale(outlineModel, glm::vec3(1.01f)); // Slightly larger to avoid z-fighting
+            ourShader.setMat4("model", outlineModel);
+
+            // Set a uniform for outline color if your shader supports it
+            // ourShader.setVec4("OutlineColor", glm::vec4(1, 1, 0, 1)); // yellow
+
+            glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); // Wireframe mode
+            glDisable(GL_CULL_FACE); // So all edges are visible
+            renderUnitCube(); // You need a function that draws a cube from (0,0,0) to (1,1,1)
+
+            glEnable(GL_CULL_FACE);
+            glPolygonMode(GL_FRONT_AND_BACK, GL_FILL); // Restore fill mode
+        }
+
         // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
         // -------------------------------------------------------------------------------
         glfwSwapBuffers(window);
@@ -150,6 +176,37 @@ int main()
     // ------------------------------------------------------------------
     glfwTerminate();
     return 0;
+}
+
+void renderUnitCube() {
+    static GLuint vao = 0, vbo = 0;
+    if (vao == 0) {
+        float vertices[] = {
+            // ... 8 cube vertices ...
+            -0.5f,-0.5f,-0.5f, 0.5f,-0.5f,-0.5f, 0.5f,0.5f,-0.5f, -0.5f,0.5f,-0.5f,
+            -0.5f,-0.5f,0.5f, 0.5f,-0.5f,0.5f, 0.5f,0.5f,0.5f, -0.5f,0.5f,0.5f
+        };
+        unsigned int indices[] = {
+            0,1, 1,2, 2,3, 3,0, // bottom
+            4,5, 5,6, 6,7, 7,4, // top
+            0,4, 1,5, 2,6, 3,7  // sides
+        };
+        glGenVertexArrays(1, &vao);
+        glGenBuffers(1, &vbo);
+        GLuint ebo;
+        glGenBuffers(1, &ebo);
+
+        glBindVertexArray(vao);
+        glBindBuffer(GL_ARRAY_BUFFER, vbo);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+        glEnableVertexAttribArray(0);
+    }
+    glBindVertexArray(vao);
+    glDrawElements(GL_LINES, 24, GL_UNSIGNED_INT, 0);
+    glBindVertexArray(0);
 }
 
 // process all input: query GLFW whether relevant keys are pressed/released this frame and react accordingly
@@ -173,12 +230,14 @@ void processInput(GLFWwindow* window)
     if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
         camera.ProcessKeyboard(RIGHT, deltaTime * speed);
     if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS) {
-        //break block so the bool place is false. 
-		playerController.RayCast(camera.Position, camera.Front, world, false);
+        //break block so the bool place is false.
+        place = false;
+        buttonPress = true;
     }
     if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS) {
         //place block so the bool place is true. 
-        playerController.RayCast(camera.Position, camera.Front, world, true);     
+        place = true;
+		buttonPress = true;
     }
 }
 
