@@ -23,6 +23,7 @@
     <ClCompile Include="LinkerStuff\dependencies\stb_image.cpp" />
     <ClCompile Include="src\Camera.cpp" />
     <ClCompile Include="src\main.cpp" />
+    <ClCompile Include="src\PlayerController.cpp" />
     <ClCompile Include="src\Shader.cpp" />
     <ClCompile Include="src\Texture.cpp" />
     <ClCompile Include="src\World\Chunk.cpp" />
@@ -37,6 +38,7 @@
     <ClInclude Include="src\Shader.h" />
     <ClInclude Include="src\Texture.h" />
     <ClInclude Include="src\World\Chunk.h" />
+    <ClInclude Include="src\PlayerController.h" />
     <ClInclude Include="src\World\Terrain.h" />
     <ClInclude Include="src\World\ThreadPool.h" />
     <ClInclude Include="src\World\World.h" />

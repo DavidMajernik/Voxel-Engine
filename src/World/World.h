@@ -9,23 +9,24 @@
 #include <queue>
 #include <unordered_set>
 #include "ThreadPool.h"
+#include <mutex> 
 
-
-class World  // A class to manage the world and its chunks
+class World 
 {
-
 public:
+    std::unordered_map<glm::ivec2, std::future<Chunk>> futureChunkMap; 
+    std::unordered_map<glm::ivec2, Chunk> loadedChunkMap;
+    glm::ivec2 chunkPos;
 
-	std::unordered_map<glm::ivec2, std::future<Chunk>> futureChunkMap; 
-	std::unordered_map<glm::ivec2, Chunk> loadedChunkMap;
-	glm::ivec2 chunkPos;
-
-
-	World();
-	void updateChunks(glm::vec3 camPos);
-	void renderChunks(Shader& shader);
-	void Delete();
+    World();
+    void reloadChunk(glm::ivec2 chunkPos);
+    void updateChunks(glm::vec3 camPos);
+    void renderChunks(Shader& shader);
+    uint8_t getBlockGlobal(glm::vec3 pos);
+    void setBlockGlobal(glm::vec3 pos, uint8_t blockType);
+    void Delete();
 
 private:
-	ThreadPool threadPool;
+    std::mutex chunkMapMutex;
+    ThreadPool threadPool;
 };

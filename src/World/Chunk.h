@@ -26,6 +26,8 @@ class Chunk {
 
 public:
 
+	bool isDirty = false; // Indicates if the chunk needs to be regenerated
+
 	Chunk();
 	Chunk(glm::vec3 pos);
 
@@ -46,6 +48,9 @@ public:
 	void uploadToGPU();
 	void render(Shader& shader);
 	void Delete();
+
+	void setBlock(const BlockPosition& blockPos, uint8_t blockType);
+	uint8_t getBlock(const BlockPosition& blockPos) const;
 
 	void generateAOVals(BlockPosition blockPos, Faces face);
 	uint8_t vertexAO(bool s1, bool s2, bool corner);

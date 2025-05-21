@@ -49,6 +49,14 @@ void Chunk::ChunkData::setBlock(const BlockPosition& blockPos, uint8_t blockType
 	}
 }
 
+uint8_t Chunk::getBlock(const BlockPosition& blockPos) const {
+	return blocks.getBlock(blockPos);
+}
+
+void Chunk::setBlock(const BlockPosition& blockPos, uint8_t blockType) {
+	blocks.setBlock(blockPos, blockType);
+}
+
 void Chunk::genBlocks(std::array<std::array<int, (chunkSize + padding)>, (chunkSize + padding)> &heightMap)
 {
 	for (int x = 0; x < (chunkSize + padding); x++) {

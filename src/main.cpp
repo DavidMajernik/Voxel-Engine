@@ -10,6 +10,7 @@
 #include "Camera.h"
 #include "Shader.h"
 #include "Texture.h"
+#include "PlayerController.h"
 
 #include <iostream>
 #include "World/Chunk.h"
@@ -35,6 +36,9 @@ bool firstMouse = true; // if the mouse is moved, this will be set to false, so 
 float deltaTime = 0.0f; // time between current frame and last frame
 float lastFrame = 0.0f; // time of last frame
 
+//break and place
+PlayerController playerController;
+std::unique_ptr<World> world;
 
 int main()
 {
@@ -85,7 +89,7 @@ int main()
     //make chunk
     //Chunk chunk = Chunk(glm::vec3(0.0f, 0.0f, 0.0f)); // Create a chunk at the origin
     //chunk.buildChunk();
-    std::unique_ptr<World> world = std::make_unique<World>();
+    world = std::make_unique<World>();
 
     // render loop
     // -----------
@@ -168,6 +172,14 @@ void processInput(GLFWwindow* window)
         camera.ProcessKeyboard(LEFT, deltaTime * speed);
     if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
         camera.ProcessKeyboard(RIGHT, deltaTime * speed);
+    if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS) {
+        //break block so the bool place is false. 
+		playerController.RayCast(camera.Position, camera.Front, world, false);
+    }
+    if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS) {
+        //place block so the bool place is true. 
+        playerController.RayCast(camera.Position, camera.Front, world, true);     
+    }
 }
 
 // glfw: whenever the window size changed (by OS or user resize) this callback function executes
