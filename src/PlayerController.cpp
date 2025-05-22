@@ -9,6 +9,7 @@ void PlayerController::RayCast(glm::vec3 camPos, glm::vec3 direction, std::uniqu
     direction = glm::normalize(direction);
 
     glm::ivec3 blockPos = glm::ivec3(glm::floor(camPos));
+	blockPos = glm::ivec3(blockPos.x, blockPos.y, blockPos.z);
     glm::ivec3 prevBlockPos = blockPos;
     glm::vec3 rayPos = camPos;
 
