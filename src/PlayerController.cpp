@@ -5,7 +5,8 @@ PlayerController::PlayerController() {}
 PlayerController::~PlayerController() {}
 
 void PlayerController::RayCast(glm::vec3 camPos, glm::vec3 direction, std::unique_ptr<World>& world, bool place, glm::vec3& hitBlockPos, bool buttonPress) {
-    const float maxDistance = 6.0f;
+    const float maxDistance = 100.0f;
+    const float interactDistance = 100.0f;
     direction = glm::normalize(direction);
 
     glm::ivec3 blockPos = glm::ivec3(glm::floor(camPos));
@@ -42,7 +43,7 @@ void PlayerController::RayCast(glm::vec3 camPos, glm::vec3 direction, std::uniqu
         uint8_t block = world->getBlockGlobal(glm::vec3(blockPos));
         if (block != 0) {
             hitBlockPos = glm::vec3(blockPos.x + 1, blockPos.y, blockPos.z + 1);
-            if (buttonPress) {
+            if (buttonPress && traveled <= interactDistance) {
                 if (place) {
                     // Place block at previous position (the last empty block)
                     if (world->getBlockGlobal(glm::vec3(prevBlockPos)) == 0) {

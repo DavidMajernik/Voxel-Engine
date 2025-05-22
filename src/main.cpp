@@ -43,6 +43,8 @@ std::unique_ptr<World> world;
 glm::vec3 hitBlockPos = glm::vec3(-1);
 bool buttonPress = false;
 bool place = false;
+bool prevLeftMousePressed = false;
+bool prevRightMousePressed = false;
 
 int main()
 {
@@ -228,16 +230,25 @@ void processInput(GLFWwindow* window)
         camera.ProcessKeyboard(LEFT, deltaTime * speed);
     if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
         camera.ProcessKeyboard(RIGHT, deltaTime * speed);
-    if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS) {
-        //break block so the bool place is false.
+
+    bool currentLeft = glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS;
+    bool currentRight = glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS;
+
+    if (currentLeft && !prevLeftMousePressed) {
+        // Left button just pressed
         place = false;
         buttonPress = true;
     }
-    if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS) {
-        //place block so the bool place is true. 
+
+    if (currentRight && !prevRightMousePressed) {
+        // Right button just pressed
         place = true;
-		buttonPress = true;
+        buttonPress = true;
     }
+
+    // Update previous states
+    prevLeftMousePressed = currentLeft;
+    prevRightMousePressed = currentRight;
 }
 
 // glfw: whenever the window size changed (by OS or user resize) this callback function executes
