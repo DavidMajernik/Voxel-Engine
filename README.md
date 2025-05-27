@@ -3,7 +3,11 @@ A small voxel engine written in C++ with OpenGL. You can fly around noise genera
 
 ![Sample Screenshot](assets/SlimeCraft001.png)
 
+Here is a hillside I dug into:
+
 ![Some broken blocks.](assets/SlimeCraft002.png)
+
+Here are some blocks I placed:
 
 ![Some placed blocks.](assets/SlimeCraft003.png)
 
