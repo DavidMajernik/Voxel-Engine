@@ -42,7 +42,7 @@ ThreadPool::ThreadPool(int num_threads)
     }
 }
 
-ThreadPool::ThreadPool() : ThreadPool(thread::hardware_concurrency() - 3) {}
+ThreadPool::ThreadPool() : ThreadPool(thread::hardware_concurrency()-4) {}
 
 ThreadPool::~ThreadPool()
 {

@@ -95,14 +95,26 @@
     <None Include="shaders\outlineShader.vs" />
   </ItemGroup>
   <ItemGroup>
-    <Image Include="assets\awesomeface.png">
-      <Filter>Source Files</Filter>
-    </Image>
-    <Image Include="assets\container.jpg">
-      <Filter>Source Files</Filter>
-    </Image>
     <Image Include="assets\MinecraftAtlas.png">
       <Filter>Source Files</Filter>
+    </Image>
+    <Image Include="..\..\Downloads\SlimeCraft001.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\..\Downloads\SlimeCraft003.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\..\Downloads\SlimeCraft002.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="assets\SlimeCraft001.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="assets\SlimeCraft002.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="assets\SlimeCraft003.png">
+      <Filter>Resource Files</Filter>
     </Image>
   </ItemGroup>
 </Project>

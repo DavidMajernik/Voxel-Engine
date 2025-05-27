@@ -51,9 +51,13 @@
     <None Include="shaders\outlineShader.vs" />
   </ItemGroup>
   <ItemGroup>
-    <Image Include="assets\awesomeface.png" />
-    <Image Include="assets\container.jpg" />
+    <Image Include="..\..\Downloads\SlimeCraft001.png" />
+    <Image Include="..\..\Downloads\SlimeCraft002.png" />
+    <Image Include="..\..\Downloads\SlimeCraft003.png" />
     <Image Include="assets\MinecraftAtlas.png" />
+    <Image Include="assets\SlimeCraft001.png" />
+    <Image Include="assets\SlimeCraft002.png" />
+    <Image Include="assets\SlimeCraft003.png" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>17.0</VCProjectVersion>
