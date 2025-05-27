@@ -255,6 +255,12 @@ void processInput(GLFWwindow* window)
     prevRightMousePressed = currentRight;
 }
 
+bool canMoveTo(glm::vec3 newPos, World* world) {
+    // Check the block at the camera's "feet" (or center)
+    uint8_t block = world->getBlockGlobal(newPos);
+    return block == 0; // 0 = air, adjust as needed for your block types
+}
+
 // glfw: whenever the window size changed (by OS or user resize) this callback function executes
 // ---------------------------------------------------------------------------------------------
 void framebuffer_size_callback(GLFWwindow* window, int width, int height)

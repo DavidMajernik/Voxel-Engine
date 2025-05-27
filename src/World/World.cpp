@@ -32,7 +32,7 @@ uint8_t World::getBlockGlobal(glm::vec3 pos) {
     if (loadedChunkMap.find(chunkPos) != loadedChunkMap.end()) {
         return loadedChunkMap[chunkPos].getBlock(localBlockPos);
     } else {
-        return 0; // Default block if not loaded
+        return BlockType::EMPTY; // Default block if not loaded
     }
 }
 

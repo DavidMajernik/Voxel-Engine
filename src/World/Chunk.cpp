@@ -34,7 +34,7 @@ uint8_t Chunk::ChunkData::getBlock(const BlockPosition& blockPos) const {
 		return blocks.at(index);
 	}
 	else {
-		std::cerr << "GetBlock out of bounds: " << index << std::endl;
+		//std::cerr << "GetBlock out of bounds: " << index << std::endl;
 		return BlockType::EMPTY; 
 	}
 }
@@ -45,7 +45,7 @@ void Chunk::ChunkData::setBlock(const BlockPosition& blockPos, uint8_t blockType
 		blocks.at(index) = blockType;
 	}
 	else {
-	std::cerr << "SetBlock out of bounds: " << index << std::endl;
+		//std::cerr << "SetBlock out of bounds: " << index << std::endl;
 	}
 }
 
