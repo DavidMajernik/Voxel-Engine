@@ -41,7 +41,7 @@ I learned a great deal about basic graphical optimizations while working on this
 
 ## Lessons Learned:
 
-In coding this project, I learned a lot about the basics of OpenGL. I went into this project almost blindly, with my initial attempt using a 'block' object--but upon realizing that that method took over 8 seconds to generate a single chunk--I learned that graphics programming requires you to be as optimized as possible.
+In coding this project, I learned a lot about the basics of OpenGL. I went into this project almost blindly, with my initial attempt using a 'block' object--I have since realized that taking over 8 seconds to generate a single chunk is generally frowned upon.
 I've loved delving into the world of voxel engines and learning about the techniques used to generate millions of tiny cubes, as well as how to convince users that you are rendering much than what you really are.
 The most important lesson I learned is that you can never be too optimized, and that there is always ways to improve. I hope to continue improving and optimizing this project as I learn!
 
