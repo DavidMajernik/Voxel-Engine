@@ -10,7 +10,7 @@ constexpr uint8_t padding = 2;
 constexpr int chunkHeight = 256; // Maximum height of the chunk
 constexpr int chunkArea = (chunkSize + padding) * (chunkSize + padding);
 constexpr int chunkVolume = chunkArea * chunkHeight;
-constexpr int renderDistance = 10; // The distance in chunks to render around the player
+constexpr int renderDistance = 20; // The distance in chunks to render around the player
 constexpr int unloadDistance = renderDistance + 1;
 
 

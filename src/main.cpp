@@ -1,7 +1,7 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
-#include "C:\Users\dpmaj\LearnC++\SlimeCraft\LinkerStuff\dependencies\stb_image.h"
+#include "..\LinkerStuff\dependencies\stb_image.h"
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -93,6 +93,7 @@ int main()
 	Shader outlineShader("shaders/outlineShader.vs", "shaders/outlineShader.fs");
 
     world = std::make_unique<World>();
+    glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 10000.0f);
 
     // render loop
     // -----------
@@ -125,14 +126,13 @@ int main()
 
 
         // pass projection matrix to shader 
-        glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 10000.0f);
         ourShader.setMat4("projection", projection);
 
         // camera/view transformation
         glm::mat4 view = camera.GetViewMatrix();
         ourShader.setMat4("view", view);
 
-        glm::mat4 model = glm::mat4(1.0f); // make sure to initialize matrix to identity matrix first
+        glm::mat4 model = glm::mat4(1.0f);
         ourShader.setMat4("model", model);
 
         //chunk.render(ourShader); // Render the chunk using the shader
