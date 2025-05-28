@@ -34,9 +34,10 @@ I learned a great deal about basic graphical optimizations while working on this
 
 ## Planned Features:
 
-- LOD System
+- LOD System (Top Priority after I finish the current tasks)
 - Per-Voxel Lighting 
 - Cave Generation
+- Frustum Culling
 - Saving and Loading Worlds
 
 ## Lessons Learned:
