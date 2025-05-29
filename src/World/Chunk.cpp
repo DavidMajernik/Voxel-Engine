@@ -85,7 +85,7 @@ void Chunk::genBlocks(std::array<std::array<int, (chunkSize + padding)>, (chunkS
 						blocks.setBlock(BlockPosition(x, y, z), BlockType::STONE);
 					}
 				}
-				else if (y >= columnHeight && y == waterLevel) {
+				else if (y >= columnHeight && y <= waterLevel) {
 					blocks.setBlock(BlockPosition(x, y, z), BlockType::WATER);
 				}
 				else {
@@ -111,9 +111,10 @@ void Chunk::genFaces() {
 
 				//we only need the top face of water blocks
 				if (blocks.getBlock(current) == BlockType::WATER) {
-					integrateFace(current, Faces::TOP_F);
-
-					addIndices(1, true);
+						if (y < chunkHeight - 1 && blocks.getBlock(BlockPosition(current.x, y + 1, current.z)) == BlockType::EMPTY) {
+							integrateFace(current, Faces::TOP_F);
+							addIndices(1, true);
+						}
 					continue;
 				}
 

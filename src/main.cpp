@@ -20,6 +20,7 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 void processInput(GLFWwindow* window);
+bool isUnderWater(glm::vec3 position, std::unique_ptr<World>& world);
 void renderUnitCube();
 
 
@@ -93,7 +94,6 @@ int main()
     // ------------------------------------
     Shader ourShader("shaders/6.3.coordinate_systems.vs", "shaders/6.3.coordinate_systems.fs");
 	Shader outlineShader("shaders/outlineShader.vs", "shaders/outlineShader.fs");
-	Shader waterShader("shaders/water.vs", "shaders/water.fs");
 
     world = std::make_unique<World>();
     glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 10000.0f);
@@ -127,6 +127,7 @@ int main()
         ourShader.setFloat("FogMaxDist", (renderDistance-0.5) * 32);
         ourShader.setFloat("FogMinDist", (renderDistance-3) * 32);
         ourShader.setVec3("CameraPos", camera.Position);
+        ourShader.setBool("isUnderWater", isUnderWater(camera.Position, world));
 
         // pass projection matrix to shader 
         ourShader.setMat4("projection", projection);
@@ -136,20 +137,12 @@ int main()
         ourShader.setMat4("view", view);
         ourShader.setMat4("model", model);
 
-
-        //set up water shader
-        waterShader.use();
-
-        // pass projection matrix to shader 
-        waterShader.setMat4("projection", projection);
-
-        // camera/view transformation
-        waterShader.setMat4("view", view);
-        waterShader.setMat4("model", model);
+        //set time
+		ourShader.setFloat("time", static_cast<float>(glfwGetTime()));
 
 
         world->updateChunks(camera.Position);
-		world->renderChunks(ourShader, waterShader); // Render all chunks in the world
+		world->renderChunks(ourShader); // Render all chunks in the world
 
         playerController.RayCast(camera.Position, camera.Front, world, place, hitBlockPos, buttonPress);
         buttonPress = false;
@@ -310,4 +303,9 @@ void mouse_callback(GLFWwindow* window, double xposIn, double yposIn)
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
 {
     camera.ProcessMouseScroll(static_cast<float>(yoffset));
+}
+
+bool isUnderWater(glm::vec3 position, std::unique_ptr<World>& world) {
+    uint8_t block = world->getBlockGlobal(position);
+    return block == 5; 
 }

@@ -21,7 +21,7 @@ public:
     World();
     void reloadChunk(glm::ivec2 chunkPos);
     void updateChunks(glm::vec3 camPos);
-    void renderChunks(Shader& shader, Shader& waterShader);
+    void renderChunks(Shader& shader);
     uint8_t getBlockGlobal(glm::vec3 pos);
     void setBlockGlobal(glm::vec3 pos, uint8_t blockType);
     void Delete();

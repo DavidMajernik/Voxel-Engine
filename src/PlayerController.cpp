@@ -46,7 +46,8 @@ void PlayerController::RayCast(glm::vec3 camPos, glm::vec3 direction, std::uniqu
             if (buttonPress && traveled <= interactDistance) {
                 if (place) {
                     // Place block at previous position (the last empty block)
-                    if (world->getBlockGlobal(glm::vec3(prevBlockPos)) == 0) {
+                    if (world->getBlockGlobal(glm::vec3(prevBlockPos)) == 0 ||
+                        world->getBlockGlobal(glm::vec3(prevBlockPos)) == 5) {
                         world->setBlockGlobal(glm::vec3(prevBlockPos), BlockType::SAND);
                     }
                 }
