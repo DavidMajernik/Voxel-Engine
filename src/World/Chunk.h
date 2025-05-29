@@ -58,6 +58,7 @@ public:
 private:
 	float uMin, vMin, uMax, vMax;
 	ChunkData blocks; // The chunk's block data
+
 	void getUVFromAtlas(int index, int atlasSize, float& uMin, float& vMin, float& uMax, float& vMax);
 
 	unsigned int chunkVAO; // Vertex Array Object for the chunk
@@ -70,6 +71,18 @@ private:
 	std::unique_ptr < std::vector<glm::vec2>> chunkUVs;
 	std::unique_ptr < std::vector<unsigned int>> chunkIndices;
 	std::unique_ptr<std::vector<uint8_t>> AOVals;
+
+	unsigned int waterVAO; // Vertex Array Object for the chunk
+	unsigned int waterVertexVBO;
+	unsigned int waterUVVBO;
+	unsigned int waterEBO;
+	unsigned int waterAOBO;
+
+	std::unique_ptr < std::vector<glm::vec3>> waterVerts;
+	std::unique_ptr < std::vector<glm::vec2>> waterUVs;
+	std::unique_ptr < std::vector<unsigned int>> waterIndices;
+	std::unique_ptr<std::vector<uint8_t>> waterAOVals;
+
 	std::unordered_map<glm::ivec2, Chunk>* loadedChunks = nullptr;
 
 	int indexCount;

@@ -4,16 +4,23 @@ Texture* Chunk::texture = nullptr; // Initialize the static texture pointer to n
 
 std::array<std::array<std::array<float, 4>, 6>, 256> Chunk::cachedUVs;
 
-Chunk::Chunk() : chunkPos(glm::ivec3(0)), indexCount(0), chunkVAO(0), chunkVertexVBO(0), chunkUVVBO(0), chunkEBO(0), chunkAOBO(0), heightMap() {
-	
-	AOVals = std::make_unique<std::vector<uint8_t>>();
+Chunk::Chunk() : chunkPos(glm::ivec3(0)), indexCount(0), chunkVAO(0), chunkVertexVBO(0), chunkUVVBO(0), chunkEBO(0), chunkAOBO(0), heightMap(),
+waterVAO(0), waterVertexVBO(0), waterUVVBO(0), waterEBO(0), waterAOBO(0) {
+
 
 }
-Chunk::Chunk(glm::vec3 pos) : chunkPos(pos), indexCount(0), chunkVAO(0), chunkVertexVBO(0), chunkUVVBO(0), chunkEBO(0), blocks(), chunkAOBO(0), heightMap() {
+Chunk::Chunk(glm::vec3 pos) : chunkPos(pos), indexCount(0), chunkVAO(0), chunkVertexVBO(0), chunkUVVBO(0), chunkEBO(0), blocks(), chunkAOBO(0), heightMap(),
+waterVAO(0), waterVertexVBO(0), waterUVVBO(0), waterEBO(0), waterAOBO(0) {
+
 	chunkVerts = std::make_unique<std::vector<glm::vec3>>();
 	chunkUVs = std::make_unique<std::vector<glm::vec2>>();
 	chunkIndices = std::make_unique<std::vector<unsigned int>>();
 	AOVals = std::make_unique<std::vector<uint8_t>>();
+
+	waterVerts = std::make_unique<std::vector<glm::vec3>>();
+	waterUVs = std::make_unique<std::vector<glm::vec2>>();
+	waterIndices = std::make_unique<std::vector<unsigned int>>();
+	waterAOVals = std::make_unique<std::vector<uint8_t>>();
 
 	Terrain terrain = Terrain(1337, 0.008f, 6, 2.0f, 0.25f);
 	heightMap = terrain.genHeightMap(chunkPos.x, chunkPos.z); 
@@ -78,6 +85,9 @@ void Chunk::genBlocks(std::array<std::array<int, (chunkSize + padding)>, (chunkS
 						blocks.setBlock(BlockPosition(x, y, z), BlockType::STONE);
 					}
 				}
+				else if (y >= columnHeight && y == waterLevel) {
+					blocks.setBlock(BlockPosition(x, y, z), BlockType::WATER);
+				}
 				else {
 					blocks.setBlock(BlockPosition(x, y, z), BlockType::EMPTY);
 				}
@@ -99,18 +109,28 @@ void Chunk::genFaces() {
 				
 				if (blocks.getBlock(current) == BlockType::EMPTY) continue;
 
+				//we only need the top face of water blocks
+				if (blocks.getBlock(current) == BlockType::WATER) {
+					integrateFace(current, Faces::TOP_F);
+
+					addIndices(1);
+					continue;
+				}
+
 				int numFaces = 0;
 
 				//Front faces
 				//qualifications for front face: Block to the front is empty
-				if (blocks.getBlock(BlockPosition(current.x, y, current.z + 1)) == BlockType::EMPTY) {
+				if (blocks.getBlock(BlockPosition(current.x, y, current.z + 1)) == BlockType::EMPTY ||
+					blocks.getBlock(BlockPosition(current.x, y, current.z + 1)) == BlockType::WATER) {
 					integrateFace(current, Faces::FRONT_F);
 					numFaces++;
 				}
 
 				//Back faces
 				//qualifications for back face: Block to the back is empty
-				if (blocks.getBlock(BlockPosition(current.x, y, current.z - 1)) == BlockType::EMPTY) {
+				if (blocks.getBlock(BlockPosition(current.x, y, current.z - 1)) == BlockType::EMPTY ||
+					blocks.getBlock(BlockPosition(current.x, y, current.z - 1)) == BlockType::WATER) {
 					integrateFace(current, Faces::BACK_F);
 					numFaces++;
 
@@ -118,14 +138,16 @@ void Chunk::genFaces() {
 					
 				//Left faces
 				//qualifications for left face: Block to the left is empty
-				if (blocks.getBlock(BlockPosition(current.x - 1, y, current.z)) == BlockType::EMPTY) {
+				if (blocks.getBlock(BlockPosition(current.x - 1, y, current.z)) == BlockType::EMPTY ||
+					blocks.getBlock(BlockPosition(current.x - 1, y, current.z)) == BlockType::WATER) {
 					integrateFace(current, Faces::LEFT_F);
 					numFaces++;
 
 				}
 				//Right faces
 				//qualifications for right face: Block to the right is empty
-				if (blocks.getBlock(BlockPosition(current.x + 1, y, current.z)) == BlockType::EMPTY) {
+				if (blocks.getBlock(BlockPosition(current.x + 1, y, current.z)) == BlockType::EMPTY ||
+					blocks.getBlock(BlockPosition(current.x + 1, y, current.z)) == BlockType::WATER) {
 					integrateFace(current, Faces::RIGHT_F);
 					numFaces++;
 
@@ -133,7 +155,8 @@ void Chunk::genFaces() {
 				//Top faces
 				//qualifications for top face: Block to the top is empty, is farthest top in chunk. 
 				if (y < chunkHeight - 1) {
-					if (blocks.getBlock(BlockPosition(current.x, y + 1, current.z)) == BlockType::EMPTY) {
+					if (blocks.getBlock(BlockPosition(current.x, y + 1, current.z)) == BlockType::EMPTY ||
+						blocks.getBlock(BlockPosition(current.x, y + 1, current.z)) == BlockType::WATER) {
 						integrateFace(current, Faces::TOP_F);
 						numFaces++;
 
@@ -148,7 +171,8 @@ void Chunk::genFaces() {
 				//Bottom faces
 				//qualifications for bottom face: Block to the bottom is empty
 				if (y > 0) {
-					if (blocks.getBlock(BlockPosition(current.x, y - 1, current.z)) == BlockType::EMPTY) {
+					if (blocks.getBlock(BlockPosition(current.x, y - 1, current.z)) == BlockType::EMPTY ||
+						blocks.getBlock(BlockPosition(current.x, y - 1, current.z)) == BlockType::WATER) {
 						integrateFace(current, Faces::BOTTOM_F);
 						numFaces++;
 
@@ -207,7 +231,7 @@ void Chunk::addIndices(int amtFaces)
 
 void Chunk::uploadToGPU()
 {
-	
+	// normal blocks
 	glGenVertexArrays(1, &chunkVAO); 
 	glBindVertexArray(chunkVAO); 
 
@@ -234,18 +258,55 @@ void Chunk::uploadToGPU()
 	glVertexAttribIPointer(2, 1, GL_UNSIGNED_BYTE, sizeof(uint8_t), (void*)0); 
 	glEnableVertexAttribArray(2);
 
+	//Water
+	glGenVertexArrays(1, &waterVAO);
+	glBindVertexArray(waterVAO);
+
+
+	glGenBuffers(1, &waterVertexVBO);
+	glBindBuffer(GL_ARRAY_BUFFER, waterVertexVBO);
+	glBufferData(GL_ARRAY_BUFFER, waterVerts->size() * sizeof(glm::vec3), waterVerts->data(), GL_STATIC_DRAW);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+	glEnableVertexAttribArray(0);
+
+	glGenBuffers(1, &waterUVVBO);
+	glBindBuffer(GL_ARRAY_BUFFER, waterUVVBO);
+	glBufferData(GL_ARRAY_BUFFER, waterUVs->size() * sizeof(glm::vec2), waterUVs->data(), GL_STATIC_DRAW);
+	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void*)0);
+	glEnableVertexAttribArray(1);
+
+	glGenBuffers(1, &waterEBO);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, waterEBO);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, waterIndices->size() * sizeof(unsigned int), waterIndices->data(), GL_STATIC_DRAW);
+
+	glGenBuffers(1, &waterAOBO);
+	glBindBuffer(GL_ARRAY_BUFFER, waterAOBO);
+	glBufferData(GL_ARRAY_BUFFER, AOVals->size() * sizeof(uint8_t), waterAOVals->data(), GL_STATIC_DRAW);
+	glVertexAttribIPointer(2, 1, GL_UNSIGNED_BYTE, sizeof(uint8_t), (void*)0);
+	glEnableVertexAttribArray(2);
+
 	glBindVertexArray(0);
 }
 
 
 void Chunk::render(Shader& shader)
 {
+	//normal blocks
 	shader.use(); 
 	glBindVertexArray(chunkVAO);
 	texture->Bind(GL_TEXTURE0); 
 
 	glDrawElements(GL_TRIANGLES, chunkIndices->size(), GL_UNSIGNED_INT, 0); 
-	glBindVertexArray(0); 
+	//glBindVertexArray(0); 
+
+	//water blocks
+	//water shader later
+	glBindVertexArray(waterVAO);
+
+	glDrawElements(GL_TRIANGLES, waterIndices->size(), GL_UNSIGNED_INT, 0);
+
+	glBindVertexArray(0);
+
 	GLenum error;
 	if ((error = glGetError()) != GL_NO_ERROR) {
 		std::cerr << "OpenGL Error: " << error << std::endl;

@@ -12,6 +12,7 @@ constexpr int chunkArea = (chunkSize + padding) * (chunkSize + padding);
 constexpr int chunkVolume = chunkArea * chunkHeight;
 constexpr int renderDistance = 20; // The distance in chunks to render around the player
 constexpr int unloadDistance = renderDistance + 1;
+constexpr int waterLevel = 80; // The level at which water is generated
 
 
 enum BlockType : uint8_t {
@@ -19,7 +20,8 @@ enum BlockType : uint8_t {
 	DIRT, 
 	GRASS,
     STONE,
-    SAND
+    SAND,
+    WATER
 };
 
 enum Faces : uint8_t {
@@ -88,6 +90,7 @@ const std::unordered_map<BlockType, std::array<int, 6>> textureIndices =
     {BlockType::DIRT,  {2, 2, 2, 2, 2, 2} },             // Dirt Texture
     {BlockType::SAND,  {176, 176, 176, 176, 176, 176} }, // Sand Texture
     {BlockType::STONE, {1, 1, 1, 1, 1, 1} },             // Stone Texture
+	{BlockType::WATER, {205, 205, 205, 205, 205, 205} },             // Water Texture
 
 };
 

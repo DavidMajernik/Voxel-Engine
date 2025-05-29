@@ -94,6 +94,7 @@ int main()
 
     world = std::make_unique<World>();
     glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 10000.0f);
+    glm::mat4 model = glm::mat4(1.0f);
 
     // render loop
     // -----------
@@ -132,7 +133,6 @@ int main()
         glm::mat4 view = camera.GetViewMatrix();
         ourShader.setMat4("view", view);
 
-        glm::mat4 model = glm::mat4(1.0f);
         ourShader.setMat4("model", model);
 
         //chunk.render(ourShader); // Render the chunk using the shader
@@ -157,10 +157,9 @@ int main()
 
             glLineWidth(5.0f);
             glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); // Wireframe mode
-            glDisable(GL_CULL_FACE); 
+
             renderUnitCube(); 
 
-            glEnable(GL_CULL_FACE);
             glPolygonMode(GL_FRONT_AND_BACK, GL_FILL); // Restore fill mode
         }
 

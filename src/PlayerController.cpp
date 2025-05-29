@@ -41,7 +41,7 @@ void PlayerController::RayCast(glm::vec3 camPos, glm::vec3 direction, std::uniqu
 
     while (traveled < maxDistance) {
         uint8_t block = world->getBlockGlobal(glm::vec3(blockPos));
-        if (block != 0) {
+        if (block != BlockType::EMPTY && block != BlockType::WATER) {
             hitBlockPos = glm::vec3(blockPos.x + 1, blockPos.y, blockPos.z + 1);
             if (buttonPress && traveled <= interactDistance) {
                 if (place) {
