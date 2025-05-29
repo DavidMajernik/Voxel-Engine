@@ -46,7 +46,8 @@ public:
 	void integrateFace(BlockPosition blockPos, Faces face);
 	void addIndices(int amtFaces, bool water);
 	void uploadToGPU();
-	void render(Shader& shader, Shader& waterShader);
+	void renderSolids(Shader& shader);
+	void renderWater(Shader& waterShader);
 	void Delete();
 
 	void setBlock(const BlockPosition& blockPos, uint8_t blockType);

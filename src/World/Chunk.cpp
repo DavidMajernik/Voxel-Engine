@@ -323,21 +323,29 @@ void Chunk::uploadToGPU()
 }
 
 
-void Chunk::render(Shader& shader, Shader& waterShader)
+void Chunk::renderSolids(Shader& shader)
 {
 	//normal blocks
 	shader.use(); 
 	glBindVertexArray(chunkVAO);
 	texture->Bind(GL_TEXTURE0); 
-
 	glDrawElements(GL_TRIANGLES, chunkIndices->size(), GL_UNSIGNED_INT, 0); 
+	glBindVertexArray(0);
 
+	GLenum error;
+	if ((error = glGetError()) != GL_NO_ERROR) {
+		std::cerr << "Solids OpenGL Error: " << error << std::endl;
+	}
+}
+
+void Chunk::renderWater(Shader& waterShader)
+{
 	//water blocks
 	waterShader.use();
 	glBindVertexArray(waterVAO);
 	texture->Bind(GL_TEXTURE0);
 
-	glDisable(GL_CULL_FACE); 
+	glDisable(GL_CULL_FACE);
 	glDrawElements(GL_TRIANGLES, waterIndices->size(), GL_UNSIGNED_INT, 0);
 	glEnable(GL_CULL_FACE);
 
@@ -345,7 +353,7 @@ void Chunk::render(Shader& shader, Shader& waterShader)
 
 	GLenum error;
 	if ((error = glGetError()) != GL_NO_ERROR) {
-		std::cerr << "OpenGL Error: " << error << std::endl;
+		std::cerr << "Water OpenGL Error: " << error << std::endl;
 	}
 }
 
