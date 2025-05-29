@@ -415,24 +415,28 @@ void Chunk::Delete()
 	glDeleteBuffers(1, &chunkUVVBO);
 	glDeleteBuffers(1, &chunkEBO);
 	glDeleteBuffers(1, &chunkAOBO);
-
+	glDeleteBuffers(1, &chunkNormalVBO);
+	
 	indexCount = 0;
 	chunkVerts->clear();
 	chunkUVs->clear();
 	chunkIndices->clear();
 	AOVals->clear();
+	chunkNormals->clear();
 
 	glDeleteVertexArrays(1, &waterVAO);
 	glDeleteBuffers(1, &waterVertexVBO);
 	glDeleteBuffers(1, &waterUVVBO);
 	glDeleteBuffers(1, &waterEBO);
 	glDeleteBuffers(1, &waterAOBO);
+	glDeleteBuffers(1, &waterNormalVBO);
 
 	waterIndexCount = 0;
 	waterVerts->clear();
 	waterUVs->clear();
 	waterIndices->clear();
 	waterAOVals->clear();
+	waterNormals->clear();
 
 }
 
