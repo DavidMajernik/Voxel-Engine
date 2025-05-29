@@ -28,7 +28,6 @@ I learned a great deal about basic graphical optimizations while working on this
 ## Currently Working On:
 
 - More diverse terrain
-- Transparent Blocks
 - Surface Features
 - Adding a walking mode
 
