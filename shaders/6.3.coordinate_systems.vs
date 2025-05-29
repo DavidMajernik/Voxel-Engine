@@ -24,8 +24,8 @@ void main()
     // Apply a simple wave effect based on time
 
     if(renderingWater) {
-        float wave = sin(time + aPos.x * 1.0) * 0.1; 
-        float wave2 = sin(time + aPos.z * 1.0) * 0.1;
+        float wave = sin(time + aPos.x * 0.5) * 0.05; 
+        float wave2 = sin(time + aPos.z * 0.6) * 0.05;
         worldPos.y += wave + wave2; // Modify the y-coordinate to create a wave effect
         worldPos.y -= 0.2;
 
