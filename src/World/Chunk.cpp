@@ -16,11 +16,13 @@ waterVAO(0), waterVertexVBO(0), waterUVVBO(0), waterEBO(0), waterAOBO(0), waterI
 	chunkUVs = std::make_unique<std::vector<glm::vec2>>();
 	chunkIndices = std::make_unique<std::vector<unsigned int>>();
 	AOVals = std::make_unique<std::vector<uint8_t>>();
+	chunkNormals = std::make_unique<std::vector<glm::vec3>>();
 
 	waterVerts = std::make_unique<std::vector<glm::vec3>>();
 	waterUVs = std::make_unique<std::vector<glm::vec2>>();
 	waterIndices = std::make_unique<std::vector<unsigned int>>();
 	waterAOVals = std::make_unique<std::vector<uint8_t>>();
+	waterNormals = std::make_unique<std::vector<glm::vec3>>();
 
 	Terrain terrain = Terrain(1337, 0.008f, 6, 2.0f, 0.25f);
 	heightMap = terrain.genHeightMap(chunkPos.x, chunkPos.z); 
@@ -230,6 +232,28 @@ void Chunk::integrateFace(BlockPosition blockPos, Faces face) {
 		chunkUVs->emplace_back(uv[0], uv[3]); // uMin, vMax
 	}
 
+	glm::vec3 normal;
+	
+	//Add normals based on face
+	switch (face) {
+	case FRONT_F:  normal = glm::vec3(0, 0, 1); break;
+	case BACK_F:   normal = glm::vec3(0, 0, -1); break;
+	case LEFT_F:   normal = glm::vec3(-1, 0, 0); break;
+	case RIGHT_F:  normal = glm::vec3(1, 0, 0); break;
+	case TOP_F:    normal = glm::vec3(0, 1, 0); break;
+	case BOTTOM_F: normal = glm::vec3(0, -1, 0); break;
+	}
+	//Add normals to the vector, per vertex.
+	for(int i = 0; i < 4; i++) {
+		if (water) {
+			waterNormals->push_back(normal);
+		}
+		else {
+			chunkNormals->push_back(normal);
+		}
+	}
+
+
 	//add ao vals
 	generateAOVals(blockPos, face, water);
 
@@ -283,6 +307,12 @@ void Chunk::uploadToGPU()
 	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void*)0);
 	glEnableVertexAttribArray(1);
 
+	glGenBuffers(1, &chunkNormalVBO);
+	glBindBuffer(GL_ARRAY_BUFFER, chunkNormalVBO);
+	glBufferData(GL_ARRAY_BUFFER, chunkNormals->size() * sizeof(glm::vec3), chunkNormals->data(), GL_STATIC_DRAW);
+	glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+	glEnableVertexAttribArray(3);
+
 	glGenBuffers(1, &chunkEBO);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, chunkEBO); 
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, chunkIndices->size() * sizeof(unsigned int), chunkIndices->data(), GL_STATIC_DRAW);
@@ -309,6 +339,12 @@ void Chunk::uploadToGPU()
 	glBufferData(GL_ARRAY_BUFFER, waterUVs->size() * sizeof(glm::vec2), waterUVs->data(), GL_STATIC_DRAW);
 	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void*)0);
 	glEnableVertexAttribArray(1);
+
+	glGenBuffers(1, &waterNormalVBO);
+	glBindBuffer(GL_ARRAY_BUFFER, waterNormalVBO);
+	glBufferData(GL_ARRAY_BUFFER, waterNormals->size() * sizeof(glm::vec3), waterNormals->data(), GL_STATIC_DRAW);
+	glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+	glEnableVertexAttribArray(3);
 
 	glGenBuffers(1, &waterEBO);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, waterEBO);

@@ -67,22 +67,26 @@ private:
 	unsigned int chunkUVVBO;
 	unsigned int chunkEBO;
 	unsigned int chunkAOBO;
+	unsigned int chunkNormalVBO;
 
 	std::unique_ptr < std::vector<glm::vec3>> chunkVerts;
 	std::unique_ptr < std::vector<glm::vec2>> chunkUVs;
 	std::unique_ptr < std::vector<unsigned int>> chunkIndices;
 	std::unique_ptr<std::vector<uint8_t>> AOVals;
+	std::unique_ptr<std::vector<glm::vec3>> chunkNormals;
 
 	unsigned int waterVAO; // Vertex Array Object for the chunk
 	unsigned int waterVertexVBO;
 	unsigned int waterUVVBO;
 	unsigned int waterEBO;
 	unsigned int waterAOBO;
+	unsigned int waterNormalVBO;
 
 	std::unique_ptr < std::vector<glm::vec3>> waterVerts;
 	std::unique_ptr < std::vector<glm::vec2>> waterUVs;
 	std::unique_ptr < std::vector<unsigned int>> waterIndices;
 	std::unique_ptr<std::vector<uint8_t>> waterAOVals;
+	std::unique_ptr<std::vector<glm::vec3>> waterNormals;
 
 	std::unordered_map<glm::ivec2, Chunk>* loadedChunks = nullptr;
 

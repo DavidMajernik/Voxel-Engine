@@ -140,6 +140,12 @@ int main()
         //set time
 		ourShader.setFloat("time", static_cast<float>(glfwGetTime()));
 
+		//set lighting
+        ourShader.setVec3("SunDirection", glm::normalize(glm::vec3(-1.0f, -1.0f, -0.5f))); // Example: sun from above/side
+        ourShader.setVec3("SunColor", glm::vec3(1.0f, 0.95f, 0.85f)); // Warm sunlight
+        ourShader.setFloat("SunIntensity", 1.0f);
+        ourShader.setVec3("AmbientColor", glm::vec3(0.3f, 0.35f, 0.4f)); // Soft blue ambient
+
 
         world->updateChunks(camera.Position);
 		world->renderChunks(ourShader); // Render all chunks in the world
