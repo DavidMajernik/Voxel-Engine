@@ -170,10 +170,10 @@ void World::updateChunks(glm::vec3 camPos)
 
 }
 
-void World::renderChunks(Shader& shader) {
+void World::renderChunks(Shader& shader, Shader& waterShader) {
 	std::lock_guard<std::mutex> lock(chunkMapMutex);
 	for (auto& pair : loadedChunkMap)
-		pair.second.render(shader);
+		pair.second.render(shader, waterShader);
 }
 
 void World::Delete() {

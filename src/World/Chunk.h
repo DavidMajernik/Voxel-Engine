@@ -44,15 +44,15 @@ public:
 	void genBlocks(std::array<std::array<int, (chunkSize + padding)>, (chunkSize + padding)> &heightMap);
 	void genFaces();
 	void integrateFace(BlockPosition blockPos, Faces face);
-	void addIndices(int amtFaces);
+	void addIndices(int amtFaces, bool water);
 	void uploadToGPU();
-	void render(Shader& shader);
+	void render(Shader& shader, Shader& waterShader);
 	void Delete();
 
 	void setBlock(const BlockPosition& blockPos, uint8_t blockType);
 	uint8_t getBlock(const BlockPosition& blockPos) const;
 
-	void generateAOVals(BlockPosition blockPos, Faces face);
+	void generateAOVals(BlockPosition blockPos, Faces face, bool water);
 	uint8_t vertexAO(bool s1, bool s2, bool corner);
 
 private:
@@ -86,4 +86,5 @@ private:
 	std::unordered_map<glm::ivec2, Chunk>* loadedChunks = nullptr;
 
 	int indexCount;
+	int waterIndexCount;
 };

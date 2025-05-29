@@ -86,11 +86,14 @@ int main()
 	glad_glFrontFace(GL_CW); // Set the front face to clockwise
 	glEnable(GL_CULL_FACE); // Enable face culling
 	glCullFace(GL_BACK); 
+	glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     // build and compile our shader zprogram
     // ------------------------------------
     Shader ourShader("shaders/6.3.coordinate_systems.vs", "shaders/6.3.coordinate_systems.fs");
 	Shader outlineShader("shaders/outlineShader.vs", "shaders/outlineShader.fs");
+	Shader waterShader("shaders/water.vs", "shaders/water.fs");
 
     world = std::make_unique<World>();
     glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 10000.0f);
@@ -125,19 +128,28 @@ int main()
         ourShader.setFloat("FogMinDist", (renderDistance-3) * 32);
         ourShader.setVec3("CameraPos", camera.Position);
 
-
         // pass projection matrix to shader 
         ourShader.setMat4("projection", projection);
 
         // camera/view transformation
         glm::mat4 view = camera.GetViewMatrix();
         ourShader.setMat4("view", view);
-
         ourShader.setMat4("model", model);
 
-        //chunk.render(ourShader); // Render the chunk using the shader
+
+        //set up water shader
+        waterShader.use();
+
+        // pass projection matrix to shader 
+        waterShader.setMat4("projection", projection);
+
+        // camera/view transformation
+        waterShader.setMat4("view", view);
+        waterShader.setMat4("model", model);
+
+
         world->updateChunks(camera.Position);
-		world->renderChunks(ourShader); // Render all chunks in the world
+		world->renderChunks(ourShader, waterShader); // Render all chunks in the world
 
         playerController.RayCast(camera.Position, camera.Front, world, place, hitBlockPos, buttonPress);
         buttonPress = false;

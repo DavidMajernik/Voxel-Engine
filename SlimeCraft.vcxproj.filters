@@ -93,6 +93,8 @@
     </None>
     <None Include="shaders\outlineShader.fs" />
     <None Include="shaders\outlineShader.vs" />
+    <None Include="shaders\water.fs" />
+    <None Include="shaders\water.vs" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="assets\MinecraftAtlas.png">

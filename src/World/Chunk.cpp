@@ -5,12 +5,12 @@ Texture* Chunk::texture = nullptr; // Initialize the static texture pointer to n
 std::array<std::array<std::array<float, 4>, 6>, 256> Chunk::cachedUVs;
 
 Chunk::Chunk() : chunkPos(glm::ivec3(0)), indexCount(0), chunkVAO(0), chunkVertexVBO(0), chunkUVVBO(0), chunkEBO(0), chunkAOBO(0), heightMap(),
-waterVAO(0), waterVertexVBO(0), waterUVVBO(0), waterEBO(0), waterAOBO(0) {
+waterVAO(0), waterVertexVBO(0), waterUVVBO(0), waterEBO(0), waterAOBO(0), waterIndexCount(0) {
 
 
 }
 Chunk::Chunk(glm::vec3 pos) : chunkPos(pos), indexCount(0), chunkVAO(0), chunkVertexVBO(0), chunkUVVBO(0), chunkEBO(0), blocks(), chunkAOBO(0), heightMap(),
-waterVAO(0), waterVertexVBO(0), waterUVVBO(0), waterEBO(0), waterAOBO(0) {
+waterVAO(0), waterVertexVBO(0), waterUVVBO(0), waterEBO(0), waterAOBO(0), waterIndexCount(0) {
 
 	chunkVerts = std::make_unique<std::vector<glm::vec3>>();
 	chunkUVs = std::make_unique<std::vector<glm::vec2>>();
@@ -113,7 +113,7 @@ void Chunk::genFaces() {
 				if (blocks.getBlock(current) == BlockType::WATER) {
 					integrateFace(current, Faces::TOP_F);
 
-					addIndices(1);
+					addIndices(1, true);
 					continue;
 				}
 
@@ -179,7 +179,7 @@ void Chunk::genFaces() {
 					}
 				}
 
-			addIndices(numFaces);
+			addIndices(numFaces, false);
 
 			}
 
@@ -190,42 +190,76 @@ void Chunk::genFaces() {
 
 void Chunk::integrateFace(BlockPosition blockPos, Faces face) {
 
-	BlockType type = static_cast<BlockType>(blocks.getBlock(blockPos)); 
+	BlockType type = static_cast<BlockType>(blocks.getBlock(blockPos));
+	bool water = false;
 
-	
-	for (auto& vertex : rawVertexData.at(face)) {
+	if (type == BlockType::WATER) {
+		water = true;
+		for (auto& vertex : rawVertexData.at(face)) {
 
-		chunkVerts->push_back(glm::vec3(static_cast<float>(vertex.x + blockPos.x + chunkPos.x),
-			static_cast<float>(vertex.y + blockPos.y + chunkPos.y),
-			static_cast<float>(vertex.z + blockPos.z + chunkPos.z))); 
+			waterVerts->push_back(glm::vec3(static_cast<float>(vertex.x + blockPos.x + chunkPos.x),
+				static_cast<float>(vertex.y + blockPos.y + chunkPos.y),
+				static_cast<float>(vertex.z + blockPos.z + chunkPos.z)));
 
+		}
+
+
+		const auto& uv = cachedUVs[static_cast<int>(type)][face];
+
+		waterUVs->emplace_back(uv[0], uv[1]); // uMin, vMin
+		waterUVs->emplace_back(uv[2], uv[1]); // uMax, vMin
+		waterUVs->emplace_back(uv[2], uv[3]); // uMax, vMax
+		waterUVs->emplace_back(uv[0], uv[3]); // uMin, vMax
+	}
+	else {
+		for (auto& vertex : rawVertexData.at(face)) {
+
+			chunkVerts->push_back(glm::vec3(static_cast<float>(vertex.x + blockPos.x + chunkPos.x),
+				static_cast<float>(vertex.y + blockPos.y + chunkPos.y),
+				static_cast<float>(vertex.z + blockPos.z + chunkPos.z)));
+
+		}
+
+
+		const auto& uv = cachedUVs[static_cast<int>(type)][face];
+
+		chunkUVs->emplace_back(uv[0], uv[1]); // uMin, vMin
+		chunkUVs->emplace_back(uv[2], uv[1]); // uMax, vMin
+		chunkUVs->emplace_back(uv[2], uv[3]); // uMax, vMax
+		chunkUVs->emplace_back(uv[0], uv[3]); // uMin, vMax
 	}
 
-
-	const auto& uv = cachedUVs[static_cast<int>(type)][face];
-
-	chunkUVs->emplace_back(uv[0], uv[1]); // uMin, vMin
-	chunkUVs->emplace_back(uv[2], uv[1]); // uMax, vMin
-	chunkUVs->emplace_back(uv[2], uv[3]); // uMax, vMax
-	chunkUVs->emplace_back(uv[0], uv[3]); // uMin, vMax
-
 	//add ao vals
-	generateAOVals(blockPos, face);
+	generateAOVals(blockPos, face, water);
 
 }
 
 
-void Chunk::addIndices(int amtFaces)
+void Chunk::addIndices(int amtFaces, bool water)
 {
-	for (int i = 0; i < amtFaces; i++) {
-		chunkIndices->push_back(0 + indexCount);
-		chunkIndices->push_back(1 + indexCount);
-		chunkIndices->push_back(2 + indexCount);
-		chunkIndices->push_back(2 + indexCount);
-		chunkIndices->push_back(3 + indexCount);
-		chunkIndices->push_back(0 + indexCount);
+	if (water) {
+		for (int i = 0; i < amtFaces; i++) {
+			waterIndices->push_back(0 + waterIndexCount);
+			waterIndices->push_back(1 + waterIndexCount);
+			waterIndices->push_back(2 + waterIndexCount);
+			waterIndices->push_back(2 + waterIndexCount);
+			waterIndices->push_back(3 + waterIndexCount);
+			waterIndices->push_back(0 + waterIndexCount);
 
-		indexCount += 4; 
+			waterIndexCount += 4;
+		}
+	}
+	else {
+		for (int i = 0; i < amtFaces; i++) {
+			chunkIndices->push_back(0 + indexCount);
+			chunkIndices->push_back(1 + indexCount);
+			chunkIndices->push_back(2 + indexCount);
+			chunkIndices->push_back(2 + indexCount);
+			chunkIndices->push_back(3 + indexCount);
+			chunkIndices->push_back(0 + indexCount);
+
+			indexCount += 4;
+		}
 	}
 }
 
@@ -281,7 +315,7 @@ void Chunk::uploadToGPU()
 
 	glGenBuffers(1, &waterAOBO);
 	glBindBuffer(GL_ARRAY_BUFFER, waterAOBO);
-	glBufferData(GL_ARRAY_BUFFER, AOVals->size() * sizeof(uint8_t), waterAOVals->data(), GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, waterAOVals->size() * sizeof(uint8_t), waterAOVals->data(), GL_STATIC_DRAW);
 	glVertexAttribIPointer(2, 1, GL_UNSIGNED_BYTE, sizeof(uint8_t), (void*)0);
 	glEnableVertexAttribArray(2);
 
@@ -289,7 +323,7 @@ void Chunk::uploadToGPU()
 }
 
 
-void Chunk::render(Shader& shader)
+void Chunk::render(Shader& shader, Shader& waterShader)
 {
 	//normal blocks
 	shader.use(); 
@@ -297,13 +331,15 @@ void Chunk::render(Shader& shader)
 	texture->Bind(GL_TEXTURE0); 
 
 	glDrawElements(GL_TRIANGLES, chunkIndices->size(), GL_UNSIGNED_INT, 0); 
-	//glBindVertexArray(0); 
 
 	//water blocks
-	//water shader later
+	waterShader.use();
 	glBindVertexArray(waterVAO);
+	texture->Bind(GL_TEXTURE0);
 
+	glDisable(GL_CULL_FACE); 
 	glDrawElements(GL_TRIANGLES, waterIndices->size(), GL_UNSIGNED_INT, 0);
+	glEnable(GL_CULL_FACE);
 
 	glBindVertexArray(0);
 
@@ -340,6 +376,19 @@ void Chunk::Delete()
 	chunkUVs->clear();
 	chunkIndices->clear();
 	AOVals->clear();
+
+	glDeleteVertexArrays(1, &waterVAO);
+	glDeleteBuffers(1, &waterVertexVBO);
+	glDeleteBuffers(1, &waterUVVBO);
+	glDeleteBuffers(1, &waterEBO);
+	glDeleteBuffers(1, &waterAOBO);
+
+	waterIndexCount = 0;
+	waterVerts->clear();
+	waterUVs->clear();
+	waterIndices->clear();
+	waterAOVals->clear();
+
 }
 
 void Chunk::cacheUVsFromAtlas() {
@@ -378,7 +427,7 @@ void Chunk::getUVFromAtlas(int index, int atlasSize, float& uMin, float& vMin, f
 	vMax = vMin + spriteSize;
 }
 
-void Chunk::generateAOVals(BlockPosition blockPos, Faces face) {
+void Chunk::generateAOVals(BlockPosition blockPos, Faces face, bool water) {
 
 	// Corner offsets
 	glm::vec3 corners[6][4] = {
@@ -439,8 +488,11 @@ void Chunk::generateAOVals(BlockPosition blockPos, Faces face) {
 		hasSide2 = blocks.getBlock(side2Pos) != BlockType::EMPTY;
 		hasCorner = blocks.getBlock(cornerPos) != BlockType::EMPTY;
 
-
-		AOVals->push_back(vertexAO(hasSide1, hasSide2, hasCorner));
+		if (water) {
+			waterAOVals->push_back(vertexAO(hasSide1, hasSide2, hasCorner));
+		}else{
+			AOVals->push_back(vertexAO(hasSide1, hasSide2, hasCorner));
+		}
 	}
 }
 
