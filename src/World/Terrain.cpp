@@ -16,15 +16,16 @@ std::array<std::array<int, (chunkSize + padding)>, (chunkSize + padding)> Terrai
 
     std::array<std::array<int, (chunkSize + padding)>, (chunkSize + padding)> heightMap = std::array<std::array<int, (chunkSize + padding)>, (chunkSize + padding)>();
 
-    float noiseValue;
+    float noiseValue, noiseValue2;
 
     for (int x = 0; x < (chunkSize + padding); x++) {
         for (int z = 0; z < (chunkSize + padding); z++) {
 
             noiseValue = noiseGenerator.GetNoise(static_cast<float>(x + chunkPosX), static_cast<float>(z + chunkPosZ));
+            
             noiseValue = (noiseValue + 1.0f) * 0.5f;
 
-            noiseValue = (noiseValue)*chunkHeight + 1.0f;
+            noiseValue = (noiseValue)*256 + 1.0f;
 
             heightMap[x][z] = static_cast<int>(noiseValue);
 

@@ -14,7 +14,6 @@ constexpr int renderDistance = 20; // The distance in chunks to render around th
 constexpr int unloadDistance = renderDistance + 1;
 constexpr int waterLevel = 80; // The level at which water is generated
 
-
 enum BlockType : uint8_t {
 	EMPTY,
 	DIRT, 
