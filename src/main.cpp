@@ -28,6 +28,9 @@ void renderUnitCube();
 const unsigned int SCR_WIDTH = 2400;
 const unsigned int SCR_HEIGHT = 1800;
 
+// Get the primary monitor
+GLFWmonitor* primaryMonitor = glfwGetPrimaryMonitor();
+
 //camera
 Camera camera(glm::vec3(0.0f, 250.0f, 0.0f));
 float lastX = SCR_WIDTH / 2.0f;
@@ -59,7 +62,7 @@ int main()
 
     // glfw window creation
     // --------------------
-    GLFWwindow* window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "LearnOpenGL", NULL, NULL);
+    GLFWwindow* window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "SlimeCraft", primaryMonitor, NULL);
     if (window == NULL)
     {
         std::cout << "Failed to create GLFW window" << std::endl;

@@ -77,13 +77,20 @@ void Chunk::genBlocks(std::array<std::array<int, (chunkSize + padding)>, (chunkS
 
 				
 				if (y < columnHeight) {
-					if ((y == columnHeight - 1)) {
+					if (y <= waterLevel + 3 && (y == columnHeight-1 || y == columnHeight - 2 || y == columnHeight - 3)) {
+						// sand will be near the water level
+						blocks.setBlock(BlockPosition(x, y, z), BlockType::SAND);
+
+					}else if (y == columnHeight - 1) {
+						//if above water level, top block is grass
 						blocks.setBlock(BlockPosition(x, y, z), BlockType::GRASS);
 					}
 					else if (y == columnHeight - 2 || y == columnHeight - 3) {
+						//next two blocks are dirt
 						blocks.setBlock(BlockPosition(x, y, z), BlockType::DIRT);
 					}
 					else {
+						//everything else is stone for now
 						blocks.setBlock(BlockPosition(x, y, z), BlockType::STONE);
 					}
 				}
