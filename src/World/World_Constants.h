@@ -10,7 +10,7 @@ constexpr uint8_t padding = 2;
 constexpr int chunkHeight = 256; // Maximum height of the chunk
 constexpr int chunkArea = (chunkSize + padding) * (chunkSize + padding);
 constexpr int chunkVolume = chunkArea * chunkHeight;
-constexpr int renderDistance = 12; // The distance in chunks to render around the player
+constexpr int renderDistance = 8; // The distance in chunks to render around the player
 constexpr int unloadDistance = renderDistance + 1;
 constexpr int waterLevel = 80; // The level at which water is generated
 
@@ -20,7 +20,12 @@ enum BlockType : uint8_t {
 	GRASS,
     STONE,
     SAND,
-    WATER
+    WATER,
+    WOOD,
+    LEAVES,
+    TALL_GRASS,
+    FLOWER_RED,
+    FLOWER_YELLOW
 };
 
 enum Faces : uint8_t {
@@ -85,14 +90,19 @@ const std::unordered_map<Faces, std::vector<glm::vec3>> rawVertexData =
 
 const std::unordered_map<BlockType, std::array<int, 6>> textureIndices =
 {
-    {BlockType::GRASS, {3, 3, 3, 3, 0, 2} },             // Grass Texture
-    {BlockType::DIRT,  {2, 2, 2, 2, 2, 2} },             // Dirt Texture
-    {BlockType::SAND,  {176, 176, 176, 176, 176, 176} }, // Sand Texture
-    {BlockType::STONE, {1, 1, 1, 1, 1, 1} },             // Stone Texture
-	{BlockType::WATER, {205, 205, 205, 205, 205, 205} },             // Water Texture
-
+    {BlockType::GRASS, {3, 3, 3, 3, 0, 2} },             
+    {BlockType::DIRT,  {2, 2, 2, 2, 2, 2} },             
+    {BlockType::SAND,  {176, 176, 176, 176, 176, 176} }, 
+    {BlockType::STONE, {1, 1, 1, 1, 1, 1} },             
+	{BlockType::WATER, {205, 205, 205, 205, 205, 205} }, 
+    {BlockType::WOOD, {20, 20, 20, 20, 21, 21} },
+    {BlockType::LEAVES, {53, 53, 53, 53, 53, 53} },
+    {BlockType::TALL_GRASS, {39, 39, 39, 39, 39, 39} }, //need to make these billboards somehow
+    {BlockType::FLOWER_RED, {11, 11, 11, 11, 11, 11} }, //need to make these billboards somehow
+    {BlockType::FLOWER_YELLOW, {12, 12, 12, 12, 12, 12} }, //need to make these billboards somehow
 };
 
 const std::vector<glm::vec2> neighborOffsets = {
     {1, 0}, {-1, 0}, {0, 1}, {0, -1}
 };
+

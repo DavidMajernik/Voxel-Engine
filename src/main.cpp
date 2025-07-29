@@ -25,8 +25,8 @@ void renderUnitCube();
 
 
 // settings
-const unsigned int SCR_WIDTH = 2400;
-const unsigned int SCR_HEIGHT = 1800;
+const unsigned int SCR_WIDTH = 1920;
+const unsigned int SCR_HEIGHT = 1080;
 
 // Get the primary monitor
 GLFWmonitor* primaryMonitor = glfwGetPrimaryMonitor();

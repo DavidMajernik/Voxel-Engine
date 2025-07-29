@@ -11,6 +11,7 @@
 #include <chrono>
 #include "Terrain.h"
 #include "Mesh.h"
+#include <random>
 
 using BlockPosition = glm::vec3; // Using glm's ivec3 for block positions
 
@@ -42,6 +43,7 @@ public:
 	static void cacheUVsFromAtlas();
 
 	void genBlocks(std::array<std::array<int, (chunkSize + padding)>, (chunkSize + padding)> &heightMap);
+	void genFeatures(std::array<std::array<int, (chunkSize + padding)>, (chunkSize + padding)>& heightMap);
 	void genFaces();
 	void integrateFace(BlockPosition blockPos, Faces face);
 	void addIndices(int amtFaces, bool water);

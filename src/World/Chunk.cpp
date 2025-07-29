@@ -1,6 +1,6 @@
 #include "Chunk.h"
 
-Texture* Chunk::texture = nullptr; // Initialize the static texture pointer to nullptr
+Texture* Chunk::texture = nullptr;
 
 std::array<std::array<std::array<float, 4>, 6>, 256> Chunk::cachedUVs;
 
@@ -9,15 +9,16 @@ Chunk::Chunk() : chunkPos(glm::ivec3(0)), heightMap(){
 
 }
 Chunk::Chunk(glm::vec3 pos) : chunkPos(pos), blocks(), heightMap(){
-
+ 
 	chunkMesh = Mesh();
 	waterMesh = Mesh();
 
 
 	Terrain terrain = Terrain(1337, 0.008f, 6, 2.0f, 0.25f);
-	heightMap = terrain.genHeightMap(chunkPos.x, chunkPos.z); 
+	heightMap = terrain.genHeightMap(chunkPos.x, chunkPos.z);
 
 	genBlocks(heightMap); 
+	genFeatures(heightMap);
 
 
 }
@@ -33,7 +34,6 @@ uint8_t Chunk::ChunkData::getBlock(const BlockPosition& blockPos) const {
 		return blocks.at(index);
 	}
 	else {
-		//std::cerr << "GetBlock out of bounds: " << index << std::endl;
 		return BlockType::EMPTY; 
 	}
 }
@@ -44,7 +44,6 @@ void Chunk::ChunkData::setBlock(const BlockPosition& blockPos, uint8_t blockType
 		blocks.at(index) = blockType;
 	}
 	else {
-		//std::cerr << "SetBlock out of bounds: " << index << std::endl;
 	}
 }
 
@@ -91,6 +90,49 @@ void Chunk::genBlocks(std::array<std::array<int, (chunkSize + padding)>, (chunkS
 					blocks.setBlock(BlockPosition(x, y, z), BlockType::EMPTY);
 				}
 			}
+		}
+	}
+
+}
+
+void Chunk::genFeatures(std::array<std::array<int, (chunkSize + padding)>, (chunkSize + padding)>& heightMap)
+{
+	std::random_device rd; // rand number gen for tree placement. 
+	std::mt19937 rng(rd());
+	std::uniform_int_distribution<int> dist(1, 100);
+
+	for (int x = 2; x < chunkSize; x++) {
+		for (int z = 2; z < chunkSize; z++) {
+
+			int columnHeight = heightMap[x][z];
+
+			int rand = dist(rng);
+			if (rand >= 99 && blocks.getBlock(BlockPosition(x, columnHeight-1, z)) == BlockType::GRASS) {
+				//make a trunk
+				blocks.setBlock(BlockPosition(x, columnHeight, z), BlockType::WOOD);
+				blocks.setBlock(BlockPosition(x, columnHeight+1, z), BlockType::WOOD);
+				blocks.setBlock(BlockPosition(x, columnHeight+2, z), BlockType::WOOD);
+				blocks.setBlock(BlockPosition(x, columnHeight+3, z), BlockType::WOOD);
+				blocks.setBlock(BlockPosition(x, columnHeight+4, z), BlockType::WOOD);
+				//make the leaves
+				blocks.setBlock(BlockPosition(x + 1, columnHeight + 3, z), BlockType::LEAVES);
+				blocks.setBlock(BlockPosition(x, columnHeight + 3, z + 1), BlockType::LEAVES);
+				blocks.setBlock(BlockPosition(x + 1, columnHeight + 3, z + 1), BlockType::LEAVES);
+				blocks.setBlock(BlockPosition(x - 1, columnHeight + 3, z), BlockType::LEAVES);
+				blocks.setBlock(BlockPosition(x, columnHeight + 3, z - 1), BlockType::LEAVES);
+				blocks.setBlock(BlockPosition(x - 1, columnHeight + 3, z - 1), BlockType::LEAVES);
+
+				blocks.setBlock(BlockPosition(x+1, columnHeight + 4, z), BlockType::LEAVES);
+				blocks.setBlock(BlockPosition(x, columnHeight + 4, z+1), BlockType::LEAVES);
+				blocks.setBlock(BlockPosition(x+1, columnHeight + 4, z+1), BlockType::LEAVES);
+				blocks.setBlock(BlockPosition(x-1, columnHeight + 4, z), BlockType::LEAVES);
+				blocks.setBlock(BlockPosition(x, columnHeight + 4, z-1), BlockType::LEAVES);
+				blocks.setBlock(BlockPosition(x-1, columnHeight + 4, z-1), BlockType::LEAVES);
+
+				blocks.setBlock(BlockPosition(x, columnHeight + 5, z), BlockType::LEAVES);
+
+			}
+
 		}
 	}
 
