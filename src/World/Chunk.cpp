@@ -494,29 +494,41 @@ void Chunk::addBillboard(const BlockPosition& pos, uint8_t type) {
 	glm::vec3 center = glm::vec3(pos.x + chunkPos.x, pos.y + chunkPos.y, pos.z + chunkPos.z);
 
 	float halfSize = 0.5f;
-	std::vector<glm::vec3> quadVerts = {
+	std::vector<glm::vec3> quadVertsX = {
 		center + glm::vec3(halfSize, halfSize, 0.0f),
 		center + glm::vec3(-halfSize, halfSize, 0.0f),
 		center + glm::vec3(-halfSize, -halfSize, 0.0f),
 		center + glm::vec3(halfSize, -halfSize, 0.0f),
 	};
 
-	for (const auto& v : quadVerts)
-		billboardMesh.addVert(v);
+	std::vector<glm::vec3> quadVertsZ = {
+		center + glm::vec3(0.0f, halfSize, -halfSize),
+		center + glm::vec3(0.0f, halfSize, halfSize),
+		center + glm::vec3(0.0f, -halfSize, halfSize),
+		center + glm::vec3(0.0f, -halfSize, -halfSize),
+	};
 
 	const auto& uv = cachedUVs[static_cast<int>(type)][0];
-	billboardMesh.addUV(glm::vec2(uv[0], uv[1]));
-	billboardMesh.addUV(glm::vec2(uv[2], uv[1]));
-	billboardMesh.addUV(glm::vec2(uv[2], uv[3]));
-	billboardMesh.addUV(glm::vec2(uv[0], uv[3]));
 
-	for (int i = 0; i < 4; ++i)
-		billboardMesh.addNormal(glm::vec3(0, 1, 0));
+	for (const auto& quad : { quadVertsX, quadVertsZ }) {
+		for (const auto& vertex : quad) {
+			billboardMesh.addVert(vertex);
 
-	billboardMesh.addIndices(1); 
+			billboardMesh.addUV(glm::vec2(uv[0], uv[1]));
+			billboardMesh.addUV(glm::vec2(uv[2], uv[1]));
+			billboardMesh.addUV(glm::vec2(uv[2], uv[3]));
+			billboardMesh.addUV(glm::vec2(uv[0], uv[3]));
 
-	for (int i = 0; i < 4; ++i)
-		billboardMesh.addAOVal(3);
+			for (int i = 0; i < 4; ++i)
+				billboardMesh.addNormal(glm::vec3(0, 1, 0));
+
+			billboardMesh.addIndices(1);
+
+			for (int i = 0; i < 4; ++i)
+				billboardMesh.addAOVal(3);
+		}
+	}
+	
 }
 
 bool Chunk::isTransparent(const BlockPosition& blockPos) const {
