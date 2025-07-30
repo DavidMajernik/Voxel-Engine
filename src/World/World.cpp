@@ -174,11 +174,19 @@ void World::renderChunks(Shader& shader) {
 	std::lock_guard<std::mutex> lock(chunkMapMutex);
 	//render solid blocks first
 	shader.setBool("renderingWater", false);
+	shader.setBool("renderingBillboard", false);
 	for (auto& pair : loadedChunkMap) {
 		pair.second.renderSolids(shader);
 	}
 
-	//render transparent blocks second
+	//billboards
+	shader.setBool("renderingBillboard", true);
+	for (auto& pair : loadedChunkMap) {
+		pair.second.renderBillboards(shader);
+	}
+	
+	//render transparent blocks 
+	shader.setBool("renderingBillboard", false);
 	shader.setBool("renderingWater", true);
 	for (auto& pair : loadedChunkMap) {
 		pair.second.renderWater(shader);

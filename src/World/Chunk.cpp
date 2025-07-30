@@ -131,8 +131,13 @@ void Chunk::genFeatures(std::array<std::array<int, (chunkSize + padding)>, (chun
 
 				blocks.setBlock(BlockPosition(x, columnHeight + 5, z), BlockType::LEAVES);
 
+			}else if(rand <= 2 && blocks.getBlock(BlockPosition(x, columnHeight - 1, z)) == BlockType::GRASS) {
+				blocks.setBlock(BlockPosition(x, columnHeight, z), BlockType::FLOWER_RED);
+			}else if(rand > 2 && rand <= 3 && blocks.getBlock(BlockPosition(x, columnHeight - 1, z)) == BlockType::GRASS) {
+				//blocks.setBlock(BlockPosition(x, columnHeight, z), BlockType::FLOWER_YELLOW);
+			}else if (rand > 4 && rand <= 8 && blocks.getBlock(BlockPosition(x, columnHeight - 1, z)) == BlockType::GRASS) {
+				blocks.setBlock(BlockPosition(x, columnHeight, z), BlockType::TALL_GRASS);
 			}
-
 		}
 	}
 
@@ -159,20 +164,26 @@ void Chunk::genFaces() {
 					continue;
 				}
 
+				//billboards
+				if (blocks.getBlock(current) == BlockType::FLOWER_RED ||
+					blocks.getBlock(current) == BlockType::FLOWER_YELLOW ||
+					blocks.getBlock(current) == BlockType::TALL_GRASS) {
+					addBillboard(current, blocks.getBlock(current));
+					continue;
+				}
+
 				int numFaces = 0;
 
 				//Front faces
 				//qualifications for front face: Block to the front is empty
-				if (blocks.getBlock(BlockPosition(current.x, y, current.z + 1)) == BlockType::EMPTY ||
-					blocks.getBlock(BlockPosition(current.x, y, current.z + 1)) == BlockType::WATER) {
+				if (isTransparent(BlockPosition(current.x, y, current.z + 1))) {
 					integrateFace(current, Faces::FRONT_F);
 					numFaces++;
 				}
 
 				//Back faces
 				//qualifications for back face: Block to the back is empty
-				if (blocks.getBlock(BlockPosition(current.x, y, current.z - 1)) == BlockType::EMPTY ||
-					blocks.getBlock(BlockPosition(current.x, y, current.z - 1)) == BlockType::WATER) {
+				if (isTransparent(BlockPosition(current.x, y, current.z - 1))) {
 					integrateFace(current, Faces::BACK_F);
 					numFaces++;
 
@@ -180,16 +191,14 @@ void Chunk::genFaces() {
 					
 				//Left faces
 				//qualifications for left face: Block to the left is empty
-				if (blocks.getBlock(BlockPosition(current.x - 1, y, current.z)) == BlockType::EMPTY ||
-					blocks.getBlock(BlockPosition(current.x - 1, y, current.z)) == BlockType::WATER) {
+				if (isTransparent(BlockPosition(current.x - 1, y, current.z))) {
 					integrateFace(current, Faces::LEFT_F);
 					numFaces++;
 
 				}
 				//Right faces
 				//qualifications for right face: Block to the right is empty
-				if (blocks.getBlock(BlockPosition(current.x + 1, y, current.z)) == BlockType::EMPTY ||
-					blocks.getBlock(BlockPosition(current.x + 1, y, current.z)) == BlockType::WATER) {
+				if (isTransparent(BlockPosition(current.x + 1, y, current.z))) {
 					integrateFace(current, Faces::RIGHT_F);
 					numFaces++;
 
@@ -197,8 +206,7 @@ void Chunk::genFaces() {
 				//Top faces
 				//qualifications for top face: Block to the top is empty, is farthest top in chunk. 
 				if (y < chunkHeight - 1) {
-					if (blocks.getBlock(BlockPosition(current.x, y + 1, current.z)) == BlockType::EMPTY ||
-						blocks.getBlock(BlockPosition(current.x, y + 1, current.z)) == BlockType::WATER) {
+					if (isTransparent(BlockPosition(current.x, y + 1, current.z))) {
 						integrateFace(current, Faces::TOP_F);
 						numFaces++;
 
@@ -213,8 +221,7 @@ void Chunk::genFaces() {
 				//Bottom faces
 				//qualifications for bottom face: Block to the bottom is empty
 				if (y > 0) {
-					if (blocks.getBlock(BlockPosition(current.x, y - 1, current.z)) == BlockType::EMPTY ||
-						blocks.getBlock(BlockPosition(current.x, y - 1, current.z)) == BlockType::WATER) {
+					if (isTransparent(BlockPosition(current.x, y - 1, current.z))) {
 						integrateFace(current, Faces::BOTTOM_F);
 						numFaces++;
 
@@ -314,6 +321,9 @@ void Chunk::uploadToGPU()
 	// normal blocks
 	chunkMesh.uploadToGPU();
 
+	//billboards
+	billboardMesh.uploadToGPU();
+
 	//Water
 	waterMesh.uploadToGPU();
 }
@@ -338,6 +348,15 @@ void Chunk::renderWater(Shader& waterShader)
 
 }
 
+void Chunk::renderBillboards(Shader& shader)
+{
+	//billboards
+	shader.use();
+	texture->Bind(GL_TEXTURE0);
+
+	billboardMesh.render(true);
+}
+
 void Chunk::initializeTexture() {
 	if (texture == nullptr) {
 		texture = new Texture(GL_TEXTURE_2D, "assets/MinecraftAtlas.png");
@@ -356,6 +375,7 @@ void Chunk::Delete()
 {
 	chunkMesh.Delete();
 	waterMesh.Delete();
+	billboardMesh.Delete();
 
 }
 
@@ -467,4 +487,47 @@ void Chunk::generateAOVals(BlockPosition blockPos, Faces face, bool water) {
 uint8_t Chunk::vertexAO(bool s1, bool s2, bool corner) {
 	if (s1 && s2) return 0;
 	return 3 - (s1 + s2 + corner);
+}
+
+void Chunk::addBillboard(const BlockPosition& pos, uint8_t type) {
+	// Center the quad at the block position
+	glm::vec3 center = glm::vec3(pos.x + chunkPos.x, pos.y + chunkPos.y, pos.z + chunkPos.z);
+
+	float halfSize = 0.5f;
+	std::vector<glm::vec3> quadVerts = {
+		center + glm::vec3(halfSize, halfSize, 0.0f),
+		center + glm::vec3(-halfSize, halfSize, 0.0f),
+		center + glm::vec3(-halfSize, -halfSize, 0.0f),
+		center + glm::vec3(halfSize, -halfSize, 0.0f),
+	};
+
+	for (const auto& v : quadVerts)
+		billboardMesh.addVert(v);
+
+	const auto& uv = cachedUVs[static_cast<int>(type)][0];
+	billboardMesh.addUV(glm::vec2(uv[0], uv[1]));
+	billboardMesh.addUV(glm::vec2(uv[2], uv[1]));
+	billboardMesh.addUV(glm::vec2(uv[2], uv[3]));
+	billboardMesh.addUV(glm::vec2(uv[0], uv[3]));
+
+	for (int i = 0; i < 4; ++i)
+		billboardMesh.addNormal(glm::vec3(0, 1, 0));
+
+	billboardMesh.addIndices(1); 
+
+	for (int i = 0; i < 4; ++i)
+		billboardMesh.addAOVal(3);
+}
+
+bool Chunk::isTransparent(const BlockPosition& blockPos) const {
+	uint8_t blockType = blocks.getBlock(blockPos);
+
+	bool isTransparent = (blockType == BlockType::EMPTY ||
+						  blockType == BlockType::WATER || 
+						  blockType == BlockType::LEAVES ||
+						  blockType == BlockType::FLOWER_RED || 
+						  blockType == BlockType::FLOWER_YELLOW ||
+						  blockType == BlockType::TALL_GRASS);
+
+	return isTransparent;
 }

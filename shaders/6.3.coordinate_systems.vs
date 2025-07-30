@@ -8,6 +8,7 @@ out vec2 TexCoord;
 out float vAO;
 out vec3 FragPos;
 out float isRenderingWaterFlag;
+out float isRenderingBillboardFlag;
 out vec3 Normal;
 
 uniform mat4 model;
@@ -15,6 +16,7 @@ uniform mat4 view;
 uniform mat4 projection;
 uniform float time;
 uniform bool renderingWater;
+uniform bool renderingBillboard;
 
 void main()
 {
@@ -38,6 +40,13 @@ void main()
     } else {
         isRenderingWaterFlag = 0.0;
     }
+
+    if(renderingBillboard) {
+        isRenderingBillboardFlag = 1.0;
+    } else {
+        isRenderingBillboardFlag = 0.0;
+    }
+
     Normal = aNormal;
 
     gl_Position = projection * view * model * worldPos;

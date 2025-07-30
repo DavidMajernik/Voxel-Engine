@@ -27,7 +27,7 @@ bool Texture::Load()
 			glTexImage2D(m_textureTarget, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, image_data);
 		}
 		else if (bpp == 4) {
-			glTexImage2D(m_textureTarget, 0, GL_RGB, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, image_data);
+			glTexImage2D(m_textureTarget, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, image_data);
 		}
 		else {
 			printf("Channel number error: %s\n", m_fileName.c_str());

@@ -5,6 +5,7 @@ in vec2 TexCoord;
 in float vAO;
 in vec3 FragPos;
 in float isRenderingWaterFlag;
+in float isRenderingBillboardFlag;
 in vec3 Normal;
 
 uniform sampler2D texture1;
@@ -21,9 +22,13 @@ uniform vec3 AmbientColor;
 
 void main()
 {
-   FragColor = texture(texture1, TexCoord);
+
+   vec4 texColor = texture(texture1, TexCoord);
+   if(texColor.a < 0.1) {
+		   discard;
+	}
+   FragColor = texColor; 
    FragColor.rgb *= mix(0.7, 1.0, vAO); 
-   FragColor.a = 1.0;
 
    float distance = length(FragPos - CameraPos);
 
@@ -37,20 +42,23 @@ void main()
    //Linear fog
    float fogFactor = clamp((distance - FogMinDist) / (FogMaxDist - FogMinDist), 0.0, 1.0);
 
-   //apply fog
-   FragColor = vec4(mix(FragColor.rgb, (FogColor.rgb)*SunIntensity, fogFactor), 1.0);
-
-   //make water meshes (and future transparent onces) semi-transparent
-   if(isRenderingWaterFlag > 0.5) {
-	   FragColor.a = 0.65;
+   //apply fog and set final alpha
+   float finalAlpha = FragColor.a;
+   if (isRenderingWaterFlag > 0.5) {
+       finalAlpha = 0.65;
+   } else if (isRenderingBillboardFlag > 0.5) {
+       finalAlpha = FragColor.a; 
+   } else {
+       finalAlpha = 1.0;
    }
+   FragColor = vec4(mix(FragColor.rgb, (FogColor.rgb)*SunIntensity, fogFactor), finalAlpha);
 
    //underwater effect
    if(isUnderWater) {
 	   vec3 waterColor = vec3(0.0, 0.2, 0.4);
 	   FragColor.rgb = mix(FragColor.rgb, waterColor, 0.5);
 	   float underWaterFogFactor = clamp((distance - 0) / (64 - 0), 0.0, 1.0);
-	   FragColor = vec4(mix(FragColor.rgb, waterColor, underWaterFogFactor), 1.0);
+	   FragColor = vec4(mix(FragColor.rgb, waterColor, underWaterFogFactor), finalAlpha);
    }
    
 }

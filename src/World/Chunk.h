@@ -45,11 +45,14 @@ public:
 	void genBlocks(std::array<std::array<int, (chunkSize + padding)>, (chunkSize + padding)> &heightMap);
 	void genFeatures(std::array<std::array<int, (chunkSize + padding)>, (chunkSize + padding)>& heightMap);
 	void genFaces();
+	void addBillboard(const BlockPosition& pos, uint8_t type);
 	void integrateFace(BlockPosition blockPos, Faces face);
 	void addIndices(int amtFaces, bool water);
 	void uploadToGPU();
 	void renderSolids(Shader& shader);
 	void renderWater(Shader& waterShader);
+	void renderBillboards(Shader& shader);
+	bool isTransparent(const BlockPosition& blockPos) const;
 	void Delete();
 
 	void setBlock(const BlockPosition& blockPos, uint8_t blockType);
@@ -68,5 +71,6 @@ private:
 
 	Mesh chunkMesh;
 	Mesh waterMesh;
+	Mesh billboardMesh;
 
 };
