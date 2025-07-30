@@ -30,9 +30,15 @@ void main()
     if(renderingWater) {
         float wave = sin(time + aPos.x * 0.5) * 0.05; 
         float wave2 = sin(time + aPos.z * 0.6) * 0.05;
-        worldPos.y += wave + wave2; // Modify the y-coordinate to create a wave effect
+        worldPos.y += wave + wave2;
         worldPos.y -= 0.2;
 
+    }
+
+    if(renderingBillboard) {
+        float wave = sin(time + aPos.x * 5) * 0.01;
+        float wave2 = sin(time + aPos.y  * 5) * 0.01;
+        worldPos.x += wave+ wave2;
     }
 
     if(renderingWater) {

@@ -97,9 +97,8 @@ const std::unordered_map<BlockType, std::array<int, 6>> textureIndices =
 	{BlockType::WATER, {205, 205, 205, 205, 205, 205} }, 
     {BlockType::WOOD, {20, 20, 20, 20, 21, 21} },
     {BlockType::LEAVES, {52, 52, 52, 52, 52, 52} },
-    {BlockType::TALL_GRASS, {39, 39, 39, 39, 39, 39} }, //need to make these billboards somehow
-    {BlockType::FLOWER_RED, {12, 12, 12, 12, 12, 12} }, //need to make these billboards somehow
-    {BlockType::FLOWER_YELLOW, {13, 13, 13, 13, 13, 13} }, //need to make these billboards somehow
+    {BlockType::FLOWER_RED, {12, 12, 12, 12, 12, 12} }, 
+    {BlockType::TALL_GRASS, {13, 13, 13, 13, 13, 13} }, 
 };
 
 const std::vector<glm::vec2> neighborOffsets = {

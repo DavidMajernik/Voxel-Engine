@@ -134,7 +134,6 @@ void Chunk::genFeatures(std::array<std::array<int, (chunkSize + padding)>, (chun
 			}else if(rand <= 2 && blocks.getBlock(BlockPosition(x, columnHeight - 1, z)) == BlockType::GRASS) {
 				blocks.setBlock(BlockPosition(x, columnHeight, z), BlockType::FLOWER_RED);
 			}else if(rand > 2 && rand <= 3 && blocks.getBlock(BlockPosition(x, columnHeight - 1, z)) == BlockType::GRASS) {
-				//blocks.setBlock(BlockPosition(x, columnHeight, z), BlockType::FLOWER_YELLOW);
 			}else if (rand > 4 && rand <= 8 && blocks.getBlock(BlockPosition(x, columnHeight - 1, z)) == BlockType::GRASS) {
 				blocks.setBlock(BlockPosition(x, columnHeight, z), BlockType::TALL_GRASS);
 			}
@@ -166,7 +165,6 @@ void Chunk::genFaces() {
 
 				//billboards
 				if (blocks.getBlock(current) == BlockType::FLOWER_RED ||
-					blocks.getBlock(current) == BlockType::FLOWER_YELLOW ||
 					blocks.getBlock(current) == BlockType::TALL_GRASS) {
 					addBillboard(current, blocks.getBlock(current));
 					continue;
@@ -359,7 +357,7 @@ void Chunk::renderBillboards(Shader& shader)
 
 void Chunk::initializeTexture() {
 	if (texture == nullptr) {
-		texture = new Texture(GL_TEXTURE_2D, "assets/MinecraftAtlas.png");
+		texture = new Texture(GL_TEXTURE_2D, "assets/MinecraftAtlas3.png");
 		texture->Load();
 	}
 }
@@ -537,8 +535,7 @@ bool Chunk::isTransparent(const BlockPosition& blockPos) const {
 	bool isTransparent = (blockType == BlockType::EMPTY ||
 						  blockType == BlockType::WATER || 
 						  blockType == BlockType::LEAVES ||
-						  blockType == BlockType::FLOWER_RED || 
-						  blockType == BlockType::FLOWER_YELLOW ||
+						  blockType == BlockType::FLOWER_RED ||
 						  blockType == BlockType::TALL_GRASS);
 
 	return isTransparent;
