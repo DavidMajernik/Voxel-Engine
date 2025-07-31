@@ -1,42 +1,37 @@
 # SlimeCraft
-A voxel engine written in C++ using OpenGL. You can fly around noise generated terrain, place blocks, and break blocks!
+A voxel engine written in C++ using OpenGL.
 
-![Sample Screenshot](assets/SlimeCraft001.png)
+![Flying Around](assets/Flying.gif)
 
-Here is a hillside I dug into:
+![Placing Blocks](assets/PlacingBlocks.gif)
 
-![Some broken blocks.](assets/SlimeCraft002.png)
+![Breaking Blocks](assets/BreakingBlocks.gif)
 
-Here are some blocks I placed:
+![Some Shrubs](assets/Shrubs.gif)
 
-![Some placed blocks.](assets/SlimeCraft003.png)
+![Going for a swim](assets/Swimming.gif)
 
-## How It's Made:
+![Some calming waves](assets/CalmingWaves.gif)
+
+## Further Information:
+
+### Features:
 
 **Tech used:** OpenGL, C++
 
-At the core, this project generates voxel data based on noise generated with FastNoiseLite, and stored in a hashmap of 32x256x32 chunks, which are loaded and unloaded based on a render distance. 
 
-## Optimizations
 
-I learned a great deal about basic graphical optimizations while working on this project (and I continue to learn as I add more things). Here is a short list of what I currently have: 
-- Back Face Culling
-- Vertex Buffer Objects
-- Multithreaded Chunk Generation
-- Per-Voxel Ambient Occlusion
+### Terrain Generation:
 
-## Currently Working On:
 
-- More diverse terrain
-- Surface Features
-- - Per-Voxel Lighting 
 
-## Planned Features:
+### Rendering:
 
-- LOD System
-- Cave Generation
-- Frustum Culling
-- Saving and Loading Worlds
+
+
+### Optimizations
+
+
 
 ## Lessons Learned:
 
