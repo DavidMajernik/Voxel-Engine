@@ -1,4 +1,4 @@
-# SlimeCraft
+# Voxel Engine
 A voxel engine written in C++ using OpenGL.
 
 ![Flying Around](assets/Flying.gif)
