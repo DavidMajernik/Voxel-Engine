@@ -276,7 +276,7 @@ void Chunk::integrateFace(BlockPosition blockPos, Faces face) {
 		chunkMesh.addUV(glm::vec2(uv[0], uv[3])); // uMin, vMax
 	}
 
-	glm::vec3 normal;
+	glm::vec3 normal{};
 	
 	//Add normals based on face
 	switch (face) {

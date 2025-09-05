@@ -93,7 +93,7 @@ int main()
 	glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-    // build and compile our shader zprogram
+    // build and compile our shader
     // ------------------------------------
     Shader ourShader("shaders/6.3.coordinate_systems.vs", "shaders/6.3.coordinate_systems.fs");
 	Shader outlineShader("shaders/outlineShader.vs", "shaders/outlineShader.fs");
@@ -269,7 +269,6 @@ void processInput(GLFWwindow* window)
 }
 
 bool canMoveTo(glm::vec3 newPos, World* world) {
-    // Check the block at the camera's "feet" (or center)
     uint8_t block = world->getBlockGlobal(newPos);
     return block == 0; // 0 = air, adjust as needed for your block types
 }
